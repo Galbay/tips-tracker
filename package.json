@@ -1,0 +1,6 @@
+{
+  "name": "tips-tracker",
+  "version": "1.0.0",
+  "description": "Track waitress tips and income",
+  "private": true
+}

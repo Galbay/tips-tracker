@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667EEA">
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Tips%20Tracker%22,%22short_name%22:%22Tips%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23667EEA%22,%22orientation%22:%22portrait%22}">
+    <title>Tips Tracker - Track Your Waitress Income</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: #f8f8f8;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: white;
+            border-radius: 50px;
+            border: 12px solid #000;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 170px;
+            height: 28px;
+            background: #000;
+            border-radius: 0 0 40px 40px;
+            z-index: 10;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            color: white;
+            padding: 16px;
+            padding-top: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .app-header-left h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .app-header-left p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .header-btn:active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #E5E5E5;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667EEA;
+            margin-top: 8px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0 12px;
+            padding: 0 4px;
+        }
+
+        .shift-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #E5E5E5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .shift-item:active {
+            transform: scale(0.98);
+            border-color: #667EEA;
+            background: #F9F7FF;
+        }
+
+        .shift-item.delete-mode {
+            border-color: #ff6b6b;
+            background: #fff5f5;
+        }
+
+        .shift-date {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .shift-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .shift-breakdown {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .shift-income {
+            font-size: 18px;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .btn-add {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-add:active {
+            transform: translateX(-50%) scale(0.9);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 20;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal {
+            background: white;
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            padding: 24px;
+            animation: slideUp 0.3s ease;
+            max-height: 90%;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-time {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-time:focus {
+            outline: none;
+            border-color: #667EEA;
+            background: #F9F7FF;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .tip-breakdown {
+            background: #F9F7FF;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .tip-input-group {
+            margin-bottom: 16px;
+        }
+
+        .tip-input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .tip-label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .tip-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .cash-icon { background: #FFB347; }
+        .card-icon { background: #667EEA; }
+        .other-icon { background: #764BA2; }
+
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .btn-save:active {
+            transform: scale(0.98);
+        }
+
+        .btn-delete {
+            width: 100%;
+            padding: 14px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-cancel {
+            background: #ddd;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .settings-modal {
+            display: none;
+        }
+
+        .settings-modal.active {
+            display: block;
+        }
+
+        .settings-option {
+            padding: 16px 0;
+            border-bottom: 1px solid #E5E5E5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+
+        .settings-option button {
+            background: #667EEA;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .settings-option.danger button {
+            background: #ff6b6b;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #E5E5E5;
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: #667EEA;
+            color: white;
+            border-color: #667EEA;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #E5E5E5;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667EEA;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="notch"></div>
+
+        <div class="app-header">
+            <div class="app-header-left">
+                <h1>💰 Tips</h1>
+                <p id="headerSubtitle">Track your earnings</p>
+            </div>
+            <button class="header-btn" onclick="openSettings()">⚙️</button>
+        </div>
+
+        <div class="app-content" id="content">
+            <div id="shiftsView">
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <div class="summary-label">This Week</div>
+                        <div class="summary-value" id="weekTotal">$0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Avg Per Shift</div>
+                        <div class="summary-value" id="avgShift">$0</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Recent Shifts</div>
+                <div id="shiftsList"></div>
+            </div>
+
+            <div id="statsView" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Earned</div>
+                        <div class="stat-value" id="totalEarned">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Shifts</div>
+                        <div class="stat-value" id="totalShifts">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Cash Tips</div>
+                        <div class="stat-value" id="totalCash">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Card Tips</div>
+                        <div class="stat-value" id="totalCard">$0</div>
+                    </div>
+                </div>
+                <div class="section-title">All-Time Stats</div>
+                <div id="allTimeStats"></div>
+            </div>
+
+            <div id="settingsView" style="display: none;">
+                <div class="section-title">Settings</div>
+                <div class="settings-option">
+                    <span>Export Data (JSON)</span>
+                    <button onclick="exportData()">Download</button>
+                </div>
+                <div class="settings-option danger">
+                    <span>Clear All Data</span>
+                    <button onclick="confirmClearData()">Clear</button>
+                </div>
+                <div style="margin-top: 24px; padding: 16px; background: #f5f5f5; border-radius: 8px;">
+                    <p style="font-size: 12px; color: #666; margin: 0;">
+                        💾 All data is stored locally on this device. No cloud backup. Export regularly to keep backups.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-add" onclick="openModal()">+</button>
+
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal" id="shiftFormModal">
+                <div class="modal-header">
+                    <span>New Shift</span>
+                    <button onclick="closeModal()">✕</button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" id="shiftDate">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Working Time</label>
+                    <div class="time-inputs">
+                        <div>
+                            <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">Start</label>
+                            <input type="time" class="form-time" id="startTime">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">End</label>
+                            <input type="time" class="form-time" id="endTime">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-label">Income Breakdown (Required)</div>
+                <div class="tip-breakdown">
+                    <div class="tip-input-group">
+                        <label class="tip-label">
+                            <span class="tip-icon cash-icon">💵</span>
+                            Cash Tips
+                        </label>
+                        <input type="number" class="form-input" id="cashTips" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="tip-input-group">
+                        <label class="tip-label">
+                            <span class="tip-icon card-icon">💳</span>
+                            Card Tips
+                        </label>
+                        <input type="number" class="form-input" id="cardTips" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="tip-input-group">
+                        <label class="tip-label">
+                            <span class="tip-icon other-icon">📱</span>
+                            Other
+                        </label>
+                        <input type="number" class="form-input" id="otherTips" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                </div>
+
+                <button class="btn-save" onclick="saveShift()">Save Shift</button>
+                <button class="btn-save btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+
+        <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 80px; background: white; border-top: 1px solid #E5E5E5; display: flex; pointer-events: none; z-index: 3;">
+            <button style="flex: 1; background: none; border: none; cursor: pointer; font-size: 14px; font-weight: 500; color: #667EEA; pointer-events: all;" onclick="switchTab('shifts')">📋 Shifts</button>
+            <button style="flex: 1; background: none; border: none; cursor: pointer; font-size: 14px; font-weight: 500; color: #999; pointer-events: all;" onclick="switchTab('stats')">📊 Stats</button>
+        </div>
+    </div>
+
+    <script>
+        let shifts = [];
+        let currentTab = 'shifts';
+
+        function initializeApp() {
+            const stored = localStorage.getItem('tipsTrackerData');
+            if (stored) {
+                try {
+                    shifts = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Failed to load data:', e);
+                    shifts = [];
+                }
+            }
+            setDefaultDate();
+            renderShifts();
+            updateStats();
+        }
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('tipsTrackerData', JSON.stringify(shifts));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    alert('Storage limit exceeded. Please export and clear old data.');
+                } else {
+                    alert('Error saving data: ' + e.message);
+                }
+            }
+        }
+
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('shiftDate').value = today;
+        }
+
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+            clearForm();
+            setDefaultDate();
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function clearForm() {
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            document.getElementById('cashTips').value = '';
+            document.getElementById('cardTips').value = '';
+            document.getElementById('otherTips').value = '';
+        }
+
+        function saveShift() {
+            const date = document.getElementById('shiftDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const cash = parseFloat(document.getElementById('cashTips').value) || 0;
+            const card = parseFloat(document.getElementById('cardTips').value) || 0;
+            const other = parseFloat(document.getElementById('otherTips').value) || 0;
+
+            if (cash + card + other === 0) {
+                alert('Please enter at least one income source (cash, card, or other)');
+                return;
+            }
+
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            const total = cash + card + other;
+
+            const shift = {
+                id: Date.now(),
+                date: date,
+                startTime: startTime,
+                endTime: endTime,
+                total: Math.round(total * 100) / 100,
+                breakdown: {
+                    cash: Math.round(cash * 100) / 100,
+                    card: Math.round(card * 100) / 100,
+                    other: Math.round(other * 100) / 100
+                }
+            };
+
+            shifts.unshift(shift);
+            saveToLocalStorage();
+            closeModal();
+            renderShifts();
+            updateStats();
+        }
+
+        function deleteShift(id) {
+            if (confirm('Delete this shift?')) {
+                shifts = shifts.filter(s => s.id !== id);
+                saveToLocalStorage();
+                renderShifts();
+                updateStats();
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            const yesterdayDate = new Date(today);
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+            if (dateStr === todayStr) return 'Today';
+            if (dateStr === yesterdayStr) return 'Yesterday';
+
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function formatTime(timeStr) {
+            if (!timeStr) return '—';
+            return new Date(`2000-01-01T${timeStr}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        function renderShifts() {
+            const list = document.getElementById('shiftsList');
+            if (shifts.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>No shifts yet. Tap + to log your first shift!</p></div>';
+                return;
+            }
+
+            list.innerHTML = shifts.map(shift => `
+                <div class="shift-item" onlongpress="deleteShift(${shift.id})" oncontextmenu="event.preventDefault(); deleteShift(${shift.id})">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <div class="shift-date">${formatDate(shift.date)}</div>
+                            <div class="shift-details">
+                                <span>${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}</span>
+                            </div>
+                            <div class="shift-breakdown">
+                                💵 $${shift.breakdown.cash.toFixed(2)} | 💳 $${shift.breakdown.card.toFixed(2)} | 📱 $${shift.breakdown.other.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="shift-income">$${shift.total.toFixed(2)}</div>
+                    </div>
+                    <button onclick="deleteShift(${shift.id})" style="margin-top: 12px; width: 100%; padding: 8px; background: #ff6b6b; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500;">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+            const weekShifts = shifts.filter(s => {
+                const shiftDate = new Date(s.date + 'T00:00:00');
+                return shiftDate >= weekAgo && shiftDate <= now;
+            });
+
+            const weekTotal = weekShifts.reduce((sum, s) => sum + s.total, 0);
+            const avg = weekShifts.length > 0 ? weekTotal / weekShifts.length : 0;
+
+            document.getElementById('weekTotal').textContent = '$' + weekTotal.toFixed(2);
+            document.getElementById('avgShift').textContent = '$' + avg.toFixed(2);
+            document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week`;
+
+            // Update all-time stats
+            const totalEarned = shifts.reduce((sum, s) => sum + s.total, 0);
+            const totalCash = shifts.reduce((sum, s) => sum + s.breakdown.cash, 0);
+            const totalCard = shifts.reduce((sum, s) => sum + s.breakdown.card, 0);
+            const totalOther = shifts.reduce((sum, s) => sum + s.breakdown.other, 0);
+
+            document.getElementById('totalEarned').textContent = '$' + totalEarned.toFixed(2);
+            document.getElementById('totalShifts').textContent = shifts.length;
+            document.getElementById('totalCash').textContent = '$' + totalCash.toFixed(2);
+            document.getElementById('totalCard').textContent = '$' + totalCard.toFixed(2);
+
+            const allTimeHtml = `
+                <div class="stat-card" style="grid-column: 1 / -1;">
+                    <div class="stat-label">Other Income</div>
+                    <div class="stat-value">$${totalOther.toFixed(2)}</div>
+                </div>
+            `;
+            document.getElementById('allTimeStats').innerHTML = allTimeHtml;
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('shiftsView').style.display = tab === 'shifts' ? 'block' : 'none';
+            document.getElementById('statsView').style.display = tab === 'stats' ? 'block' : 'none';
+            document.getElementById('settingsView').style.display = 'none';
+        }
+
+        function openSettings() {
+            const settingsView = document.getElementById('settingsView');
+            if (settingsView.style.display === 'none') {
+                document.getElementById('shiftsView').style.display = 'none';
+                document.getElementById('statsView').style.display = 'none';
+                settingsView.style.display = 'block';
+            } else {
+                settingsView.style.display = 'none';
+                switchTab('shifts');
+            }
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(shifts, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `tips-data-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function confirmClearData() {
+            if (confirm('This will delete ALL shifts permanently. Are you sure?')) {
+                if (confirm('Really delete everything?')) {
+                    shifts = [];
+                    saveToLocalStorage();
+                    renderShifts();
+                    updateStats();
+                    openSettings();
+                }
+            }
+        }
+
+        // Initialize the app
+        initializeApp();
+    </script>
+</body>
+</html>
