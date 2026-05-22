@@ -141,7 +141,7 @@
             padding: 16px;
             padding-left: 0;
             padding-right: 0;
-            padding-bottom: 32px;
+            padding-bottom: 0;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
         }
@@ -334,7 +334,7 @@
 
         .btn-add {
             position: fixed;
-            bottom: max(24px, env(safe-area-inset-bottom));
+            bottom: calc(env(safe-area-inset-bottom) + 12px);
             left: 50%;
             transform: translateX(-50%);
             width: 60px;
@@ -368,7 +368,7 @@
             z-index: 20;
             animation: fadeIn 0.3s ease;
             justify-content: center;
-            align-items: center;
+            align-items: flex-end;
         }
 
         .modal-overlay.active {
@@ -377,10 +377,16 @@
 
         #deleteShiftModalOverlay {
             z-index: 30 !important;
+            align-items: center !important;
         }
 
         #gapsListModalOverlay {
             z-index: 25 !important;
+            align-items: center !important;
+        }
+
+        #clearModalOverlay {
+            align-items: center !important;
         }
 
         #modalOverlay {
@@ -1059,6 +1065,9 @@
                     <span class="side-menu-icon">⚙️</span>
                     <span>Settings</span>
                 </button>
+            </div>
+            <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center;">
+                <span style="font-size: 11px; color: var(--text-tertiary);">v0.1.5</span>
             </div>
         </div>
 
@@ -2036,12 +2045,19 @@
                             <span style="color: ${secondaryColor};">Rate Breakdown:</span>
                         </div>
                         <div style="font-size: 13px; color: ${secondaryColor}; line-height: 1.6;">
-                            ${calc.hours <= 8 ? 
-                                `${calc.hours.toFixed(2)}h @ ₪${minWage.toFixed(2)}/h = ₪${(calc.hours * minWage).toFixed(2)}` 
-                                : calc.hours <= 10 ?
-                                `8h @ ₪${minWage.toFixed(2)}/h = ₪${(8 * minWage).toFixed(2)}<br/>${(calc.hours - 8).toFixed(2)}h @ ₪${(minWage * 1.25).toFixed(2)}/h = ₪${((calc.hours - 8) * minWage * 1.25).toFixed(2)}`
-                                : `8h @ ₪${minWage.toFixed(2)}/h = ₪${(8 * minWage).toFixed(2)}<br/>2h @ ₪${(minWage * 1.25).toFixed(2)}/h = ₪${(2 * minWage * 1.25).toFixed(2)}<br/>${(calc.hours - 10).toFixed(2)}h @ ₪${(minWage * 1.5).toFixed(2)}/h = ₪${((calc.hours - 10) * minWage * 1.5).toFixed(2)}`
-                            }
+                            ${(() => {
+                                const enable125 = localStorage.getItem('enable125Rule') !== 'false';
+                                if (!enable125) {
+                                    return `${calc.hours.toFixed(2)}h @ ₪${minWage.toFixed(2)}/h = ₪${(calc.hours * minWage).toFixed(2)}`;
+                                }
+                                if (calc.hours <= 8) {
+                                    return `${calc.hours.toFixed(2)}h @ ₪${minWage.toFixed(2)}/h = ₪${(calc.hours * minWage).toFixed(2)}`;
+                                } else if (calc.hours <= 10) {
+                                    return `8h @ ₪${minWage.toFixed(2)}/h = ₪${(8 * minWage).toFixed(2)}<br/>${(calc.hours - 8).toFixed(2)}h @ ₪${(minWage * 1.25).toFixed(2)}/h = ₪${((calc.hours - 8) * minWage * 1.25).toFixed(2)}`;
+                                } else {
+                                    return `8h @ ₪${minWage.toFixed(2)}/h = ₪${(8 * minWage).toFixed(2)}<br/>2h @ ₪${(minWage * 1.25).toFixed(2)}/h = ₪${(2 * minWage * 1.25).toFixed(2)}<br/>${(calc.hours - 10).toFixed(2)}h @ ₪${(minWage * 1.5).toFixed(2)}/h = ₪${((calc.hours - 10) * minWage * 1.5).toFixed(2)}`;
+                                }
+                            })()}
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
                             <span style="color: ${secondaryColor};">Average per hour:</span>
