@@ -9,8 +9,13 @@
     <meta name="apple-mobile-web-app-title" content="Lillytip">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Track your waitress tips and earnings with overtime calculations">
-    <link rel="manifest" href="data:application/json,{%22name%22:%22Lillytip%22,%22short_name%22:%22Lillytip%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23FF6B9D%22,%22theme_color%22:%22%23FF6B9D%22,%22orientation%22:%22portrait%22,%22scope%22:%22/%22}">
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Lillytip%22,%22short_name%22:%22Lillytip%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%238a1a4c%22,%22theme_color%22:%22%23FF6B9D%22,%22orientation%22:%22portrait%22,%22scope%22:%22/%22,%22icons%22:[{%22src%22:%22lillytip-deep-magenta.svg%22,%22sizes%22:%22any%22,%22type%22:%22image/svg+xml%22}]}">
     <title>Lillytip - Track Your Waitress Income</title>
+    
+    <!-- Favicons - Deep magenta for website/iOS -->
+    <link rel="icon" type="image/svg+xml" href="lillytip-deep-magenta.svg">
+    <link rel="apple-touch-icon" href="lillytip-deep-magenta.svg">
+    
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -133,8 +138,8 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             padding: 16px;
-            padding-left: 16px;
-            padding-right: 16px;
+            padding-left: 0;
+            padding-right: 0;
             padding-bottom: 32px;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
@@ -990,8 +995,32 @@
     <div class="phone-frame">
         <div class="app-header">
             <div class="app-header-left">
-                <h1>💐 Lillytip</h1>
-                <p id="headerSubtitle">Track your earnings</p>
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <svg width="52" height="52" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
+                        <g transform="translate(100 110)">
+                            <g transform="scale(0.92)">
+                                <g transform="rotate(-30) scale(1 0.95)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(30) scale(1 0.95)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(0) scale(1 1.05)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round" opacity="1"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(-72) scale(1 0.92)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity="1"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(72) scale(1 0.92)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity="1"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(-118) scale(1 0.78)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(118) scale(1 0.78)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g><path d="M 0 -2 Q -8 14, -18 30" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="-18" cy="30" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(-22 -18 30)"/></g>
+                                <g><path d="M 0 -2 Q -4 16, -8 34" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="-8" cy="34" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(-10 -8 34)"/></g>
+                                <g><path d="M 0 -2 Q 0 18, 0 36" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="0" cy="36" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(0 0 36)"/></g>
+                                <g><path d="M 0 -2 Q 4 16, 8 34" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="8" cy="34" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(10 8 34)"/></g>
+                                <g><path d="M 0 -2 Q 8 14, 18 30" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="18" cy="30" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(22 18 30)"/></g>
+                                <path d="M 0 -2 Q 0 20, 0 42" fill="none" stroke="#6b0e3a" stroke-width="1.7" stroke-linecap="round"/>
+                                <circle cx="0" cy="44" r="2.6" fill="#6b0e3a"/>
+                            </g>
+                        </g>
+                    </svg>
+                    <div style="display: flex; flex-direction: column; gap: 0;">
+                        <h1 style="margin: 0; font-size: 26px; font-weight: 700; line-height: 1;">Lillytip</h1>
+                        <p id="headerSubtitle" style="margin: 4px 0 0 0;">Track your earnings</p>
+                    </div>
+                </div>
             </div>
             <div>
                 <button class="header-btn" id="hamburgerBtn" onclick="toggleMenu()" style="font-size: 20px; font-weight: 700; letter-spacing: 1px;">☰</button>
@@ -1033,7 +1062,7 @@
         </div>
 
         <div class="app-content" id="content">
-            <div id="shiftsView">
+            <div id="shiftsView" style="padding: 0 16px;">
                 <div class="summary-cards">
                     <div class="summary-card">
                         <div class="summary-label">This Month (with gap)</div>
@@ -1053,17 +1082,17 @@
                 <div id="shiftsList"></div>
             </div>
 
-            <div id="statsView" style="display: none;">
+            <div id="statsView" style="display: none; padding: 0 16px;">
                 <div id="monthlyStats"></div>
                 <div id="allTimeStats"></div>
             </div>
 
-            <div id="archiveView" style="display: none;">
+            <div id="archiveView" style="display: none; padding: 0 16px;">
                 <div class="section-title">Past Months</div>
                 <div id="archiveList"></div>
             </div>
 
-            <div id="settingsView" style="display: none;">
+            <div id="settingsView" style="display: none; padding: 0 16px;">
                 <div class="section-title">Settings</div>
                 
                 <div class="settings-option">
@@ -1706,16 +1735,16 @@
                                     </div>
                                 </div>
                                 <div class="shift-breakdown" style="margin-top: 2px;">
-                                    💵 ₪${shift.breakdown.cash.toFixed(2)} | 💳 ₪${shift.breakdown.card.toFixed(2)} | 📱 ₪${shift.breakdown.other.toFixed(2)}
+                                    💵 ₪${fmt(shift.breakdown.cash)} | 💳 ₪${fmt(shift.breakdown.card)} | 📱 ₪${fmt(shift.breakdown.other)}
                                 </div>
                             </div>
                             <div style="text-align: right; margin-left: 12px;">
-                                <div class="shift-income">₪${shift.total.toFixed(2)}</div>
+                                <div class="shift-income">₪${fmt(shift.total)}</div>
                                 <div style="font-size: 11px; font-weight: 600; color: ${deltaColor}; margin-top: 2px;">
-                                    ${deltaSign}₪${Math.abs(calc.delta).toFixed(2)}
+                                    ${deltaSign}₪${fmt(Math.abs(calc.delta))}
                                 </div>
                                 <div style="font-size: 11px; color: #667EEA; font-weight: 600; margin-top: 2px;">
-                                    ₪${calc.hourlyAverage.toFixed(2)}/h
+                                    ₪${fmt(calc.hourlyAverage)}/h
                                 </div>
                             </div>
                         </div>
@@ -1723,14 +1752,14 @@
                             ${(() => {
                                 const enable125 = localStorage.getItem('enable125Rule') !== 'false';
                                 if (!enable125) {
-                                    return `${calc.hours.toFixed(1)}h @ ₪${minWage.toFixed(2)}`;
+                                    return `${fmt(calc.hours, 1)}h @ ₪${fmt(minWage)}`;
                                 }
                                 if (calc.hours <= 8) {
-                                    return `${calc.hours.toFixed(1)}h @ ₪${minWage.toFixed(2)}`;
+                                    return `${fmt(calc.hours, 1)}h @ ₪${fmt(minWage)}`;
                                 } else if (calc.hours <= 10) {
-                                    return `8h @ ₪${minWage.toFixed(2)} + ${(calc.hours - 8).toFixed(1)}h @ ₪${(minWage * 1.25).toFixed(2)}`;
+                                    return `8h @ ₪${fmt(minWage)} + ${fmt(calc.hours - 8, 1)}h @ ₪${fmt(minWage * 1.25)}`;
                                 } else {
-                                    return `8h @ ₪${minWage.toFixed(2)} + 2h @ ₪${(minWage * 1.25).toFixed(2)} + ${(calc.hours - 10).toFixed(1)}h @ ₪${(minWage * 1.5).toFixed(2)}`;
+                                    return `8h @ ₪${fmt(minWage)} + 2h @ ₪${fmt(minWage * 1.25)} + ${fmt(calc.hours - 10, 1)}h @ ₪${fmt(minWage * 1.5)}`;
                                 }
                             })()}
                         </div>
@@ -1807,10 +1836,10 @@
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <div class="archive-month-name">${monthKey}</div>
-                                <div style="font-size: 12px; color: #999;">${shiftCount} shifts • ${totalHours.toFixed(1)}h</div>
+                                <div style="font-size: 12px; color: #999;">${shiftCount} shifts • ${fmt(totalHours, 1)}h</div>
                             </div>
                             <div style="text-align: right;">
-                                <div class="archive-total-value">₪${totalEarned.toFixed(2)}</div>
+                                <div class="archive-total-value">₪${fmt(totalEarned)}</div>
                                 <div style="font-size: 11px; color: ${gapColor}; font-weight: 600;">${gapLabel}</div>
                             </div>
                         </div>
@@ -1818,32 +1847,32 @@
                         <div class="archive-month-stats" style="margin-top: 12px;">
                             <div class="archive-stat">
                                 <div class="archive-stat-label">💵 Cash</div>
-                                <div class="archive-stat-value">₪${totalCash.toFixed(0)}</div>
+                                <div class="archive-stat-value">₪${fmt0(totalCash)}</div>
                             </div>
                             <div class="archive-stat">
                                 <div class="archive-stat-label">💳 Card</div>
-                                <div class="archive-stat-value">₪${totalCard.toFixed(0)}</div>
+                                <div class="archive-stat-value">₪${fmt0(totalCard)}</div>
                             </div>
                             <div class="archive-stat">
                                 <div class="archive-stat-label">📱 Other</div>
-                                <div class="archive-stat-value">₪${totalOther.toFixed(0)}</div>
+                                <div class="archive-stat-value">₪${fmt0(totalOther)}</div>
                             </div>
                         </div>
 
                         <div style="margin-top: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                 <span style="font-size: 12px; color: var(--text-secondary);">Total Earned:</span>
-                                <span style="font-size: 12px; font-weight: 600; color: #28a745;">₪${totalEarned.toFixed(2)}</span>
+                                <span style="font-size: 12px; font-weight: 600; color: #28a745;">₪${fmt(totalEarned)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="font-size: 12px; color: var(--text-secondary);">Restaurant Paid Gap:</span>
-                                <span style="font-size: 12px; font-weight: 600; color: ${hasGap ? '#ff6b6b' : '#28a745'};">₪${Math.max(0, monthlyGap).toFixed(2)}</span>
+                                <span style="font-size: 12px; font-weight: 600; color: ${hasGap ? '#ff6b6b' : '#28a745'};">₪${fmt(Math.max(0, monthlyGap))}</span>
                             </div>
                         </div>
 
                         <div style="margin-top: 12px; padding: 12px; background: ${hasGap ? '#fff5f5' : '#f5fff5'}; border-radius: 8px; border-left: 3px solid ${gapColor};">
-                            <div style="font-size: 12px; color: ${gapColor}; font-weight: 600;">Min Required: ₪${totalMinRequired.toFixed(2)}</div>
-                            <div style="font-size: 14px; color: ${gapColor}; font-weight: 700; margin-top: 4px;">${hasGap ? '-' : '+'}₪${Math.abs(monthlyGap).toFixed(2)}</div>
+                            <div style="font-size: 12px; color: ${gapColor}; font-weight: 600;">Min Required: ₪${fmt(totalMinRequired)}</div>
+                            <div style="font-size: 14px; color: ${gapColor}; font-weight: 700; margin-top: 4px;">${hasGap ? '-' : '+'}₪${fmt(Math.abs(monthlyGap))}</div>
                         </div>
                     </div>
                 `;
@@ -1991,7 +2020,7 @@
                             <div style="color: ${tertiaryColor}; font-size: 14px; margin-top: 4px;">${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}</div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-size: 24px; font-weight: 700; color: #28a745;">₪${shift.total.toFixed(2)}</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #28a745;">₪${fmt(shift.total)}</div>
                             <div style="font-size: 12px; color: ${tertiaryColor}; margin-top: 4px;">Total Earned</div>
                         </div>
                     </div>
@@ -2023,15 +2052,15 @@
                         <div style="font-weight: 600; font-size: 14px; color: ${textColor}; margin-bottom: 12px;">Income Sources</div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span style="color: ${secondaryColor};">💵 Cash Tips:</span>
-                            <span style="font-weight: 600; color: ${textColor};">₪${shift.breakdown.cash.toFixed(2)}</span>
+                            <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.cash)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span style="color: ${secondaryColor};">💳 Card Tips:</span>
-                            <span style="font-weight: 600; color: ${textColor};">₪${shift.breakdown.card.toFixed(2)}</span>
+                            <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.card)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span style="color: ${secondaryColor};">📱 Other Income:</span>
-                            <span style="font-weight: 600; color: ${textColor};">₪${shift.breakdown.other.toFixed(2)}</span>
+                            <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.other)}</span>
                         </div>
                     </div>
 
@@ -2149,9 +2178,9 @@
             });
             const monthTotalWithGaps = monthTotal + monthGaps;
 
-            document.getElementById('weekTotal').textContent = '₪' + monthTotalWithGaps.toFixed(2);
-            document.getElementById('tipsOnlyTotal').textContent = '₪' + monthTotal.toFixed(2);
-            document.getElementById('avgShift').textContent = '₪' + tipsOnlyAvg.toFixed(2);
+            document.getElementById('weekTotal').textContent = '₪' + fmt(monthTotalWithGaps);
+            document.getElementById('tipsOnlyTotal').textContent = '₪' + fmt(monthTotal);
+            document.getElementById('avgShift').textContent = '₪' + fmt(tipsOnlyAvg);
             document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week | ${currentMonthShifts.length} shifts this month`;
 
             const totalEarned = shifts.reduce((sum, s) => sum + s.total, 0);
