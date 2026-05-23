@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <meta name="theme-color" content="#FF6B9D">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -58,19 +58,22 @@
         html, body {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden !important;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
             background: var(--bg-primary);
-            overflow: hidden;
+            overflow: hidden !important;
             display: flex;
             flex-direction: column;
             width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
-            touch-action: manipulation;
+            touch-action: none;
             user-select: none;
             -webkit-user-select: none;
             color: var(--text-primary);
@@ -138,14 +141,15 @@
 
         .app-content {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: scroll;
             overflow-x: hidden;
             background: var(--bg-primary);
             color: var(--text-primary);
             padding: 16px;
             padding-left: 0;
             padding-right: 0;
-            padding-bottom: 0;
+            padding-bottom: 60px;
+            touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
         }
@@ -373,6 +377,7 @@
             animation: fadeIn 0.3s ease;
             justify-content: center;
             align-items: flex-end;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
         }
 
         .modal-overlay.active {
@@ -382,15 +387,18 @@
         #deleteShiftModalOverlay {
             z-index: 30 !important;
             align-items: center !important;
+            padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
         }
 
         #gapsListModalOverlay {
             z-index: 25 !important;
             align-items: center !important;
+            padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
         }
 
         #clearModalOverlay {
             align-items: center !important;
+            padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
         }
 
         #modalOverlay {
@@ -627,7 +635,7 @@
             background: rgba(0, 0, 0, 0.4);
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 99;
         }
 
@@ -646,7 +654,7 @@
             background: var(--card-bg);
             box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
             transform: translateX(100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 100;
             display: flex;
             flex-direction: column;
@@ -1050,64 +1058,102 @@
             <div class="side-panel-content">
                 <button onclick="menuSwitchTab('shifts')" class="side-menu-item active-menu">
                     <span class="side-menu-icon">📋</span>
-                    <span>Shifts</span>
+                    <span id="menuShifts">Shifts</span>
                 </button>
                 <button onclick="menuSwitchTab('archive')" class="side-menu-item">
                     <span class="side-menu-icon">📦</span>
-                    <span>Archive</span>
+                    <span id="menuArchive">Archive</span>
                 </button>
                 <button onclick="menuSwitchTab('stats')" class="side-menu-item">
                     <span class="side-menu-icon">📊</span>
-                    <span>Stats</span>
+                    <span id="menuStats">Stats</span>
+                </button>
+                <button onclick="menuSwitchTab('weather')" class="side-menu-item">
+                    <span class="side-menu-icon">🌤️</span>
+                    <span id="menuWeather">Weather</span>
                 </button>
                 <div class="side-menu-divider"></div>
                 <button onclick="menuToggleDarkMode()" id="menuDarkMode" class="side-menu-item">
                     <span class="side-menu-icon">🌙</span>
-                    <span>Dark Mode</span>
+                    <span id="menuDarkLabel">Dark Mode</span>
                 </button>
-                <button onclick="menuOpenSettings()" class="side-menu-item">
+                <button onclick="menuOpenSettings()" id="menuSettings" class="side-menu-item">
                     <span class="side-menu-icon">⚙️</span>
-                    <span>Settings</span>
+                    <span id="menuSettingsLabel">Settings</span>
                 </button>
             </div>
             <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center;">
-                <span style="font-size: 11px; color: var(--text-tertiary);">v0.1.5</span>
+                <span style="font-size: 11px; color: var(--text-tertiary);">v0.2.6</span>
             </div>
         </div>
 
         <div class="app-content" id="content">
-            <div id="shiftsView" style="padding: 0 16px;">
+            <div id="shiftsView" style="padding: 0 16px; touch-action: pan-y;">
                 <div class="summary-cards">
                     <div class="summary-card">
-                        <div class="summary-label">This Month (with gap)</div>
+                        <div class="summary-label" id="cardLabel1">This Month (with gap)</div>
                         <div class="summary-value" id="weekTotal">₪0</div>
                     </div>
                     <div class="summary-card">
-                        <div class="summary-label">Tips Only (this month)</div>
+                        <div class="summary-label" id="cardLabel2">Tips Only (this month)</div>
                         <div class="summary-value" id="tipsOnlyTotal">₪0</div>
                     </div>
                     <div class="summary-card">
-                        <div class="summary-label">Avg Per Shift (tips only)</div>
+                        <div class="summary-label" id="cardLabel3">Avg Per Shift (tips only)</div>
                         <div class="summary-value" id="avgShift">₪0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label" id="cardLabel4">Hourly Avg (tips only)</div>
+                        <div class="summary-value" id="hourlyAvgMonth">₪0/h</div>
                     </div>
                 </div>
 
-                <div class="section-title">Recent Shifts</div>
+                <div class="section-title" id="recentShiftsTitle">Recent Shifts</div>
                 <div id="shiftsList"></div>
             </div>
 
-            <div id="statsView" style="display: none; padding: 0 16px;">
+            <div id="statsView" style="display: none; padding: 0 16px; touch-action: pan-y;">
                 <div id="monthlyStats"></div>
                 <div id="allTimeStats"></div>
             </div>
 
-            <div id="archiveView" style="display: none; padding: 0 16px;">
-                <div class="section-title">Past Months</div>
+            <div id="archiveView" style="display: none; padding: 0 16px; touch-action: pan-y;">
+                <div class="section-title" id="pastMonthsTitle">Past Months</div>
                 <div id="archiveList"></div>
             </div>
 
-            <div id="settingsView" style="display: none; padding: 0 16px;">
+            <div id="weatherView" style="display: none; padding: 0 16px; touch-action: pan-y;">
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px; position: relative;">
+                        <select id="weatherLocationSelect" onchange="switchWeatherLocation()" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text-primary); font-size: 14px;">
+                            <option value="">Saved Locations</option>
+                        </select>
+                        <button onclick="useDeviceLocation()" style="padding: 10px 12px; background: #FF6B9D; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 45px;">📍</button>
+                    </div>
+                    
+                    <div style="position: relative; margin-bottom: 16px;">
+                        <input type="text" id="weatherSearchInput" placeholder="Search in English (e.g., Tel Aviv, Jerusalem)" 
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text-primary); font-size: 14px; box-sizing: border-box;"
+                            oninput="searchWeatherLocation(this.value)">
+                        <div id="weatherSearchResults" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto; display: none; z-index: 10;"></div>
+                    </div>
+                    
+                    <div id="weatherContent"></div>
+                </div>
+            </div>
+
+            <div id="settingsView" style="display: none; padding: 0 16px; touch-action: pan-y;">
                 <div class="section-title">Settings</div>
+                
+                <div class="settings-option">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Language</div>
+                    </div>
+                    <select id="languageSelect" onchange="changeLanguage(this.value)" style="padding: 8px 12px; background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 14px;">
+                        <option value="en">English</option>
+                        <option value="he">עברית</option>
+                    </select>
+                </div>
                 
                 <div class="settings-option">
                     <div>
@@ -1162,18 +1208,18 @@
         <div class="modal-overlay" id="gapsListModalOverlay" style="display: none;" onclick="if(event.target === this) closeGapsListModal()">
             <div class="modal" id="gapsListModal" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <span>Shifts with Gaps</span>
+                    <span id="gapsModalTitle">Shifts with Gaps</span>
                     <button onclick="closeGapsListModal()">✕</button>
                 </div>
                 <div id="gapsListContent" style="margin-bottom: 20px;"></div>
-                <button class="btn-save btn-cancel" style="width: 100%;" onclick="closeGapsListModal()">Close</button>
+                <button class="btn-save btn-cancel" style="width: 100%;" id="closeGapsBtn" onclick="closeGapsListModal()">Close</button>
             </div>
         </div>
 
         <div class="modal-overlay" id="deleteShiftModalOverlay" style="display: none;" onclick="if(event.target === this) closeDeleteShiftModal()">
             <div class="modal" id="deleteShiftModal" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <span>⚠️ Delete Shift</span>
+                    <span id="deleteModalTitle">⚠️ Delete Shift</span>
                     <button onclick="closeDeleteShiftModal()">✕</button>
                 </div>
                 <div style="margin-bottom: 20px;">
@@ -1189,7 +1235,7 @@
         <div class="modal-overlay" id="clearModalOverlay" style="display: none;" onclick="if(event.target === this) closeClearModal()">
             <div class="modal" id="clearModal" onclick="event.stopPropagation()">
                 <div class="modal-header">
-                    <span>⚠️ Delete All Data</span>
+                    <span id="clearModalTitle">⚠️ Delete All Data</span>
                     <button onclick="closeClearModal()">✕</button>
                 </div>
                 <div style="margin-bottom: 20px;">
@@ -1207,47 +1253,47 @@
         <div class="modal-overlay" id="modalOverlay" onclick="if(event.target === this) closeModal()">
             <div class="modal" id="shiftFormModal">
                 <div class="modal-header">
-                    <span>New Shift</span>
+                    <span id="shiftModalTitle">New Shift</span>
                     <button onclick="closeModal()">✕</button>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Date</label>
+                    <label class="form-label" id="dateLabel">Date</label>
                     <input type="date" class="form-input" id="shiftDate">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Working Time</label>
+                    <label class="form-label" id="workingTimeLabel">Working Time</label>
                     <div class="time-inputs">
                         <div>
-                            <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">Start</label>
+                            <label class="form-label" id="startLabel" style="font-size: 12px; margin-bottom: 6px;">Start</label>
                             <input type="time" class="form-time" id="startTime">
                         </div>
                         <div>
-                            <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">End</label>
+                            <label class="form-label" id="endLabel" style="font-size: 12px; margin-bottom: 6px;">End</label>
                             <input type="time" class="form-time" id="endTime">
                         </div>
                     </div>
                 </div>
 
-                <div class="form-label">Income Breakdown (Required)</div>
+                <div class="form-label" id="incomeLabel">Income Breakdown (Required)</div>
                 <div class="tip-breakdown">
                     <div class="tip-input-group">
-                        <label class="tip-label">
+                        <label class="tip-label" id="cashLabel">
                             <span class="tip-icon cash-icon">💵</span>
                             Cash Tips
                         </label>
                         <input type="number" class="form-input" id="cashTips" placeholder="0.00" step="0.01" min="0">
                     </div>
                     <div class="tip-input-group">
-                        <label class="tip-label">
+                        <label class="tip-label" id="cardLabel">
                             <span class="tip-icon card-icon">💳</span>
                             Card Tips
                         </label>
                         <input type="number" class="form-input" id="cardTips" placeholder="0.00" step="0.01" min="0">
                     </div>
                     <div class="tip-input-group">
-                        <label class="tip-label">
+                        <label class="tip-label" id="otherLabel">
                             <span class="tip-icon other-icon">📱</span>
                             Other
                         </label>
@@ -1255,8 +1301,11 @@
                     </div>
                 </div>
 
-                <button class="btn-save" onclick="saveShift()">Save Shift</button>
-                <button class="btn-save btn-cancel" onclick="closeModal()">Cancel</button>
+                <div class="form-label" id="notesLabel" style="margin-top: 16px;">Notes (Optional)</div>
+                <textarea id="shiftNotes" placeholder="Add any notes about this shift..." style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text-primary); font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px; box-sizing: border-box;"></textarea>
+
+                <button class="btn-save" id="saveShiftBtn" onclick="saveShift()">Save Shift</button>
+                <button class="btn-save btn-cancel" id="cancelShiftBtn" onclick="closeModal()">Cancel</button>
             </div>
         </div>
 
@@ -1275,6 +1324,360 @@
         let shifts = [];
         let currentTab = 'shifts';
         let minWage = parseFloat(localStorage.getItem('minWage')) || 35.41;
+        let currentLanguage = localStorage.getItem('appLanguage') || 'en';
+
+        // Translation system
+        const translations = {
+            en: {
+                shifts: 'Shifts',
+                archive: 'Archive',
+                stats: 'Stats',
+                weather: 'Weather',
+                settings: 'Settings',
+                darkMode: 'Dark Mode',
+                lightMode: 'Light Mode',
+                newShift: 'New Shift',
+                editShift: 'Edit Shift',
+                shiftsWithGaps: 'Shifts with Gaps',
+                deleteShift: 'Delete Shift',
+                clearAllData: 'Clear All Data',
+                date: 'Date',
+                workingTime: 'Working Time',
+                startTime: 'Start Time',
+                endTime: 'End Time',
+                incomeBreakdown: 'Income Breakdown (Required)',
+                cashTips: 'Cash Tips',
+                cardTips: 'Card Tips',
+                other: 'Other',
+                notes: 'Notes (Optional)',
+                addNotesPlaceholder: 'Add any notes about this shift...',
+                saveShift: 'Save Shift',
+                cancel: 'Cancel',
+                edit: 'Edit',
+                delete: 'Delete',
+                download: 'Download',
+                upload: 'Upload',
+                update: 'Update',
+                clear: 'Clear',
+                language: 'Language',
+                minWage: 'Minimum Wage (₪/hour)',
+                currently: 'Currently:',
+                perHour: '/hour',
+                apply125: 'Apply 125% for 8-10h shifts',
+                enableOvertime: 'Enable overtime rate calculations',
+                exportData: 'Export Data (JSON)',
+                importData: 'Import Data (JSON)',
+                monthly: 'Monthly',
+                thisMonthWithGap: 'This Month (with gap)',
+                tipsOnlyThisMonth: 'Tips Only (this month)',
+                avgPerShift: 'Avg Per Shift (tips only)',
+                hourlyAvgTips: 'Hourly Avg (tips only)',
+                totalShifts: 'Total shifts',
+                totalHours: 'Total Hours',
+                totalEarned: 'Total Earned',
+                earnedTips: 'Earned Tips',
+                allTime: 'All Time',
+                cash: 'Cash',
+                card: 'Card',
+                bestShiftAllTime: 'Best Shift (All Time)',
+                bestShiftProfit: 'Best Shift (Profit)',
+                pastMonths: 'Past Months',
+                noPastMonths: 'No past months yet. Archive will appear here.',
+                restaurantPaidGap: 'Restaurant Paid Gap:',
+                minRequired: 'Min Required:',
+                gapRestaurantPays: '⚠️ Gap (Restaurant pays)',
+                aboveMinimum: '✓ Above minimum',
+                allShifts: 'All Shifts',
+                recentShifts: 'Recent Shifts',
+                gaps: 'Gaps',
+                surplus: 'Surplus',
+                tapToViewDetails: 'Tap to view details',
+                noGapsFound: 'No gaps found',
+                shiftDetails: 'Shift Details',
+                shift: 'Shift',
+                sunday: 'Sun',
+                monday: 'Mon',
+                tuesday: 'Tue',
+                wednesday: 'Wed',
+                thursday: 'Thu',
+                friday: 'Fri',
+                saturday: 'Sat',
+                january: 'January',
+                february: 'February',
+                march: 'March',
+                april: 'April',
+                may: 'May',
+                june: 'June',
+                july: 'July',
+                august: 'August',
+                september: 'September',
+                october: 'October',
+                november: 'November',
+                december: 'December',
+                totalEarnedLabel: 'Total Earned',
+                notesLabel: '📝 Notes',
+                hoursAndBreakdownLabel: 'Hours & Breakdown',
+                totalHoursLabel: 'Total Hours:',
+                rateBreakdownLabel: 'Rate Breakdown:',
+                averagePerHourLabel: 'Average per hour:',
+                incomeSourcesLabel: 'Income Sources',
+                cashTipsLabel: '💵 Cash Tips:',
+                cardTipsLabel: '💳 Card Tips:',
+                otherIncomeLabel: '📱 Other Income:',
+                minWageStatusLabel: 'Minimum Wage Status',
+                minRequiredLabel: 'Min Required:',
+                editBtn: 'Edit',
+                deleteBtn: 'Delete',
+                closeBtn: 'Close',
+                totalGapsMsg: '⚠️ Total Gaps (Restaurant pays)',
+                allShiftsAboveMinMsg: '✓ All Shifts Above Minimum',
+                gapArchiveMsg: '⚠️ Gap (Restaurant pays)',
+                aboveMinimumArchiveMsg: '✓ Above minimum',
+                minRequiredArchiveMsg: 'Min Required:',
+                gapLabelArchiveMsg: '⚠️ Gap:',
+                surplusLabelArchiveMsg: '✓ Surplus:',
+                hoursAndBreakdown: 'Hours & Breakdown',
+                rateBreakdown: 'Rate Breakdown:',
+                averagePerHour: 'Average per hour:',
+                searchLocation: 'Search location...',
+                today: 'TODAY',
+                sevenDayForecast: '7-DAY FORECAST',
+                wind: 'Wind',
+                humidity: 'Humidity',
+                uvIndex: 'UV Index',
+                rainChance: 'Rain Chance',
+                noShiftsYet: 'No shifts yet. Tap + to log your first shift!',
+                noShiftsThisMonth: 'No shifts this month. Tap + to log your first shift!',
+                selectDate: 'Please select a date',
+                enterIncomeSource: 'Please enter at least one income source (cash, card, or other)',
+                incorrectDelete: 'Incorrect. Type "delete" exactly to confirm.',
+                dataDeleted: 'All data has been deleted.',
+                enterMinWage: 'Please enter a minimum wage amount',
+                minWageGreaterThanZero: 'Minimum wage must be greater than 0',
+                selectLocation: 'Select a location',
+                dataStoredLocally: '💾 All data is stored locally on this device. No cloud backup. Export regularly to keep backups.',
+                iLoveYou: 'אני אוהב אותך קמוליק ❤️',
+                monthDetails: 'Month Details'
+            },
+            he: {
+                shifts: 'משמרות',
+                archive: 'ארכיון',
+                stats: 'סטטיסטיקה',
+                weather: 'מזג אוויר',
+                settings: 'הגדרות',
+                darkMode: 'מצב כהה',
+                lightMode: 'מצב בהיר',
+                newShift: 'משמרת חדשה',
+                editShift: 'עריכת משמרת',
+                shiftsWithGaps: 'משמרות עם השלמות',
+                deleteShift: 'מחיקת משמרת',
+                clearAllData: 'מחיקת כל הנתונים',
+                date: 'תאריך',
+                workingTime: 'שעות עבודה',
+                startTime: 'שעת התחלה',
+                endTime: 'שעת סיום',
+                incomeBreakdown: 'פירוט הכנסות',
+                cashTips: 'טיפים במזומן',
+                cardTips: 'טיפים באשראי',
+                other: 'אחר',
+                notes: 'הערות (לא חובה)',
+                addNotesPlaceholder: 'הוספת הערה למשמרת זו...',
+                saveShift: 'שמור משמרת',
+                cancel: 'ביטול',
+                edit: 'עריכה',
+                delete: 'מחיקה',
+                download: 'הורדה',
+                upload: 'העלאה',
+                update: 'עדכן',
+                clear: 'מחיקה',
+                language: 'שפה',
+                minWage: 'שכר מינימום (₪/שעה)',
+                currently: 'כרגע:',
+                perHour: '/שעה',
+                apply125: 'החל 125% עבור משמרות 8-10 שעות',
+                enableOvertime: 'אפשר חישוב שיעור עבודה נוספת',
+                exportData: 'ייצוא נתונים (JSON)',
+                importData: 'ייבוא נתונים (JSON)',
+                monthly: 'חודשי',
+                thisMonthWithGap: 'החודש הזה (עם השלמות)',
+                tipsOnlyThisMonth: 'טיפים בלבד (החודש הזה)',
+                avgPerShift: 'ממוצע לכל משמרה (טיפים בלבד)',
+                hourlyAvgTips: 'ממוצע לשעה (טיפים בלבד)',
+                totalShifts: 'סך הכל משמרות',
+                totalHours: 'סך הכל שעות',
+                totalEarned: 'סך הכל רווח',
+                earnedTips: 'טיפים שהתקבלו',
+                allTime: 'כל הזמן',
+                cash: 'מזומן',
+                card: 'כרטיס',
+                bestShiftAllTime: 'המשמרה הטובה ביותר (כל הזמנים)',
+                bestShiftProfit: 'המשמרה הטובה ביותר (רווח)',
+                pastMonths: 'חודשים קודמים',
+                noPastMonths: 'אין חודשים קודמים עדיין. הארכיון יופיע כאן.',
+                restaurantPaidGap: 'השלמה מהמסעדה:',
+                minRequired: 'מינימום נדרש:',
+                gapRestaurantPays: '⚠️ השלמה (המסעדה משלמת)',
+                aboveMinimum: '✓ מעל המינימום',
+                allShifts: 'כל המשמרות',
+                recentShifts: 'משמרות אחרונות',
+                gaps: 'השלמות',
+                surplus: 'עודף',
+                tapToViewDetails: 'לצפייה בפרטים',
+                noGapsFound: 'לא נמצאו השלמות',
+                shiftDetails: 'פרטי המשמרה',
+                totalEarnedLabel: 'סך הכל רווח',
+                notesLabel: '📝 הערות',
+                hoursAndBreakdownLabel: 'שעות ופירוט',
+                totalHoursLabel: 'סך הכל שעות:',
+                rateBreakdownLabel: 'פירוט תעריפים:',
+                averagePerHourLabel: 'ממוצע לשעה:',
+                incomeSourcesLabel: 'מקורות הכנסה',
+                cashTipsLabel: '💵 טיפים במזומן:',
+                cardTipsLabel: '💳 טיפים באשראי:',
+                otherIncomeLabel: '📱 הכנסה אחרת:',
+                minWageStatusLabel: 'סטטוס שכר מינימום',
+                minRequiredLabel: 'מינימום נדרש:',
+                editBtn: 'עריכה',
+                deleteBtn: 'מחיקה',
+                closeBtn: 'סגור',
+                totalGapsMsg: '⚠️ סך הכל השלמות (המסעדה משלמת)',
+                allShiftsAboveMinMsg: '✓ כל המשמרות מעל המינימום',
+                gapArchiveMsg: '⚠️ השלמה (המסעדה משלמת)',
+                aboveMinimumArchiveMsg: '✓ מעל המינימום',
+                minRequiredArchiveMsg: 'מינימום נדרש:',
+                gapLabelArchiveMsg: '⚠️ השלמה:',
+                surplusLabelArchiveMsg: '✓ עודף:',
+                hoursAndBreakdown: 'שעות ופירוט',
+                rateBreakdown: 'פירוט תעריפים:',
+                averagePerHour: 'ממוצע לשעה:',
+                searchLocation: 'חפש מיקום...',
+                today: 'היום',
+                sevenDayForecast: 'תחזית ל-7 ימים',
+                wind: 'רוח',
+                humidity: 'לחות',
+                uvIndex: 'מדד UV',
+                rainChance: 'סיכוי לגשם',
+                noShiftsYet: 'אין משמרות עדיין. הקישו + כדי לתעד את המשמרה הראשונה שלך!',
+                noShiftsThisMonth: 'אין משמרות החודש. הקישו + כדי לתעד את המשמרה הראשונה שלך!',
+                selectDate: 'בחר תאריך',
+                enterIncomeSource: 'הזן לפחות מקור הכנסה אחד (מזומן, כרטיס או אחר)',
+                incorrectDelete: 'לא נכון. הקלד "delete" בדיוק כדי לאשר.',
+                dataDeleted: 'כל הנתונים נמחקו.',
+                enterMinWage: 'הזן סכום שכר מינימום',
+                minWageGreaterThanZero: 'שכר מינימום חייב להיות גדול מ-0',
+                selectLocation: 'בחר מיקום',
+                dataStoredLocally: '💾 כל הנתונים מאוחסנים במכשיר בלבד. אין גיבוי בענן. בצעו ייצוא בקביעות כדי לשמור על גיבויים.',
+                iLoveYou: 'אני אוהב אותך קמוליק ❤️',
+                monthDetails: 'פרטי החודש',
+                shift: 'משמרת',
+                sunday: 'ראשון',
+                monday: 'שני',
+                tuesday: 'שלישי',
+                wednesday: 'רביעי',
+                thursday: 'חמישי',
+                friday: 'שישי',
+                saturday: 'שבת',
+                january: 'ינואר',
+                february: 'פברואר',
+                march: 'מרץ',
+                april: 'אפריל',
+                may: 'מאי',
+                june: 'יוני',
+                july: 'יולי',
+                august: 'אוגוסט',
+                september: 'ספטמבר',
+                october: 'אוקטובר',
+                november: 'נובמבר',
+                december: 'דצמבר'
+            }
+        };
+
+        function t(key) {
+            return translations[currentLanguage]?.[key] || translations.en[key] || key;
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('appLanguage', currentLanguage);
+            document.getElementById('languageSelect').value = currentLanguage;
+            updateUILanguage();
+            // Re-render all tab content to update dynamic content
+            renderShifts();
+            renderArchive();
+            updateStats();
+        }
+
+        function updateUILanguage() {
+            // Update menu items
+            const menuShifts = document.getElementById('menuShifts');
+            const menuArchive = document.getElementById('menuArchive');
+            const menuStats = document.getElementById('menuStats');
+            const menuWeather = document.getElementById('menuWeather');
+            const menuDarkLabel = document.getElementById('menuDarkLabel');
+            const menuSettingsLabel = document.getElementById('menuSettingsLabel');
+            
+            if (menuShifts) menuShifts.textContent = t('shifts');
+            if (menuArchive) menuArchive.textContent = t('archive');
+            if (menuStats) menuStats.textContent = t('stats');
+            if (menuWeather) menuWeather.textContent = t('weather');
+            if (menuDarkLabel) {
+                const isDark = document.body.classList.contains('dark-mode');
+                menuDarkLabel.textContent = isDark ? t('lightMode') : t('darkMode');
+            }
+            if (menuSettingsLabel) menuSettingsLabel.textContent = t('settings');
+            
+            // Update Shifts tab labels
+            const cardLabel1 = document.getElementById('cardLabel1');
+            const cardLabel2 = document.getElementById('cardLabel2');
+            const cardLabel3 = document.getElementById('cardLabel3');
+            const cardLabel4 = document.getElementById('cardLabel4');
+            const recentShiftsTitle = document.getElementById('recentShiftsTitle');
+            const gapsModalTitle = document.getElementById('gapsModalTitle');
+            const closeGapsBtn = document.getElementById('closeGapsBtn');
+            
+            if (cardLabel1) cardLabel1.textContent = t('thisMonthWithGap');
+            if (cardLabel2) cardLabel2.textContent = t('tipsOnlyThisMonth');
+            if (cardLabel3) cardLabel3.textContent = t('avgPerShift');
+            if (cardLabel4) cardLabel4.textContent = t('hourlyAvgTips');
+            if (recentShiftsTitle) recentShiftsTitle.textContent = t('recentShifts');
+            if (gapsModalTitle) gapsModalTitle.textContent = t('shiftsWithGaps');
+            if (closeGapsBtn) closeGapsBtn.textContent = t('closeBtn');
+            
+            // Update form labels
+            const dateLabel = document.getElementById('dateLabel');
+            const workingTimeLabel = document.getElementById('workingTimeLabel');
+            const startLabel = document.getElementById('startLabel');
+            const endLabel = document.getElementById('endLabel');
+            const incomeLabel = document.getElementById('incomeLabel');
+            const cashLabel = document.getElementById('cashLabel');
+            const cardLabel = document.getElementById('cardLabel');
+            const otherLabel = document.getElementById('otherLabel');
+            const notesLabel = document.getElementById('notesLabel');
+            const saveShiftBtn = document.getElementById('saveShiftBtn');
+            const cancelShiftBtn = document.getElementById('cancelShiftBtn');
+            
+            if (dateLabel) dateLabel.textContent = t('date');
+            if (workingTimeLabel) workingTimeLabel.textContent = t('workingTime');
+            if (startLabel) startLabel.textContent = t('startTime');
+            if (endLabel) endLabel.textContent = t('endTime');
+            if (incomeLabel) incomeLabel.textContent = t('incomeBreakdown');
+            if (cashLabel) {
+                cashLabel.innerHTML = `<span class="tip-icon cash-icon">💵</span>${t('cashTips')}`;
+            }
+            if (cardLabel) {
+                cardLabel.innerHTML = `<span class="tip-icon card-icon">💳</span>${t('cardTips')}`;
+            }
+            if (otherLabel) {
+                otherLabel.innerHTML = `<span class="tip-icon other-icon">📱</span>${t('other')}`;
+            }
+            if (notesLabel) notesLabel.textContent = t('notes');
+            if (saveShiftBtn) saveShiftBtn.textContent = t('saveShift');
+            if (cancelShiftBtn) cancelShiftBtn.textContent = t('cancel');
+            
+            // Update textarea placeholder
+            const shiftNotes = document.getElementById('shiftNotes');
+            if (shiftNotes) shiftNotes.placeholder = t('addNotesPlaceholder');
+        }
 
         function toggle125Rule() {
             const enabled = document.getElementById('enable125Rule').checked;
@@ -1508,7 +1911,7 @@
                 const btn = document.getElementById('menuDarkMode');
                 if (btn) {
                     btn.querySelector('.side-menu-icon').textContent = '☀️';
-                    btn.querySelector('span:last-child').textContent = 'Light Mode';
+                    // Don't set text here - let updateUILanguage handle it
                 }
             }
 
@@ -1517,7 +1920,7 @@
                 try {
                     shifts = JSON.parse(stored);
                 } catch (e) {
-                    console.error('Failed to load data:', e);
+
                     shifts = [];
                 }
             }
@@ -1526,6 +1929,10 @@
             // Load 125% rule setting
             const enable125 = localStorage.getItem('enable125Rule') !== 'false';
             document.getElementById('enable125Rule').checked = enable125;
+            
+            // Initialize language display
+            document.getElementById('languageSelect').value = currentLanguage;
+            updateUILanguage();
             
             setDefaultDate();
             renderShifts();
@@ -1551,19 +1958,24 @@
         }
 
         function openModal() {
+            const modalHeader = document.getElementById('shiftModalTitle');
             document.getElementById('modalOverlay').classList.add('active');
             // Only clear form if we're NOT editing
             if (!window.editingShiftId) {
                 clearForm();
                 setDefaultDate();
+                modalHeader.textContent = t('newShift');
             }
+            // If editing, header is already set by editShift()
         }
 
         function closeModal() {
             document.getElementById('modalOverlay').classList.remove('active');
             window.editingShiftId = null;
-            const modalHeader = document.querySelector('.modal-header span');
-            modalHeader.textContent = 'New Shift';
+            const modalHeader = document.getElementById('shiftModalTitle');
+            modalHeader.textContent = t('newShift');
+            // Ensure body stays locked
+            document.body.style.overflow = 'hidden';
         }
 
         function clearForm() {
@@ -1572,6 +1984,7 @@
             document.getElementById('cashTips').value = '';
             document.getElementById('cardTips').value = '';
             document.getElementById('otherTips').value = '';
+            document.getElementById('shiftNotes').value = '';
         }
 
         function saveShift() {
@@ -1581,6 +1994,7 @@
             const cash = parseFloat(document.getElementById('cashTips').value) || 0;
             const card = parseFloat(document.getElementById('cardTips').value) || 0;
             const other = parseFloat(document.getElementById('otherTips').value) || 0;
+            const notes = document.getElementById('shiftNotes').value.trim();
 
             if (cash + card + other === 0) {
                 alert('Please enter at least one income source (cash, card, or other)');
@@ -1608,7 +2022,8 @@
                             cash: Math.round(cash * 100) / 100,
                             card: Math.round(card * 100) / 100,
                             other: Math.round(other * 100) / 100
-                        }
+                        },
+                        notes: notes || undefined
                     };
                     window.editingShiftId = null;
                 }
@@ -1624,7 +2039,8 @@
                         cash: Math.round(cash * 100) / 100,
                         card: Math.round(card * 100) / 100,
                         other: Math.round(other * 100) / 100
-                    }
+                    },
+                    notes: notes || undefined
                 };
                 shifts.unshift(shift);
             }
@@ -1634,6 +2050,8 @@
             renderShifts();
             renderArchive();
             updateStats();
+            // Triple-ensure body stays locked
+            document.body.style.overflow = 'hidden';
             
             // If we were editing, refresh the shift details display
             const shiftIdToRefresh = window.lastViewedShiftId;
@@ -1674,6 +2092,10 @@
             return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
         }
 
+        function getHourSymbol() {
+            return currentLanguage === 'he' ? '/ש' : '/h';
+        }
+
         function getDisplayDate(shift) {
             return formatDate(shift.date);
         }
@@ -1682,8 +2104,12 @@
             const date = new Date(dateStr + 'T00:00:00');
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            const options = { weekday: 'short' };
-            const dayOfWeek = date.toLocaleDateString('en-US', options);
+            
+            // Get translated day name based on current language
+            const dayOfWeekNum = date.getDay();
+            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const dayOfWeek = t(dayNames[dayOfWeekNum]);
+            
             return `${dayOfWeek}, ${day}/${month}`;
         }
 
@@ -1693,9 +2119,10 @@
         }
 
         function renderShifts() {
+            document.body.style.overflow = 'hidden';
             const list = document.getElementById('shiftsList');
             if (shifts.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>No shifts yet. Tap + to log your first shift!</p></div>';
+                list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>${t('noShiftsYet')}</p></div>`;
                 document.getElementById('headerSubtitle').textContent = '0 shifts this week | 0 shifts this month';
                 return;
             }
@@ -1715,7 +2142,7 @@
             const weekShifts = getWeekShifts();
 
             if (currentMonthShifts.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>No shifts this month. Tap + to log your first shift!</p></div>';
+                list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>${t('noShiftsThisMonth')}</p></div>`;
                 document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week | 0 shifts this month`;
                 return;
             }
@@ -1733,7 +2160,7 @@
             sortedShifts.forEach(shift => {
                 const calc = calculateDelta(shift);
                 const deltaColor = calc.isGap ? '#ff6b6b' : '#28a745';
-                const deltaLabel = calc.isGap ? 'Gap (restaurant pays)' : 'Surplus';
+                const deltaLabel = calc.isGap ? t('gapRestaurantPays') : t('surplus');
                 const deltaSign = calc.isGap ? '-' : '+';
 
                 html += `
@@ -1758,7 +2185,7 @@
                                     ${deltaSign}₪${fmt(Math.abs(calc.delta))}
                                 </div>
                                 <div style="font-size: 11px; color: #667EEA; font-weight: 600; margin-top: 2px;">
-                                    ₪${fmt(calc.hourlyAverage)}/h
+                                    ₪${fmt(calc.hourlyAverage)}${currentLanguage === 'he' ? '/ש' : '/h'}
                                 </div>
                             </div>
                         </div>
@@ -1815,7 +2242,7 @@
                 });
 
             if (monthKeys.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>No past months yet. Archive will appear here.</p></div>';
+                list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><p>${t('noPastMonths')}</p></div>`;
                 return;
             }
 
@@ -1843,7 +2270,7 @@
                 const monthId = monthKey.replace(/\s+/g, '-');
                 const hasGap = monthlyGap > 0;
                 const gapColor = hasGap ? '#ff6b6b' : '#28a745';
-                const gapLabel = hasGap ? '⚠️ Gap (Restaurant pays)' : '✓ Above minimum';
+                const gapLabel = hasGap ? t('gapArchiveMsg') : t('aboveMinimumArchiveMsg');
 
                 html += `
                     <div class="archive-month-card" onclick="toggleMonthDetails('${monthId}')">
@@ -1878,9 +2305,13 @@
                                 <span style="font-size: 12px; color: var(--text-secondary);">Total Earned:</span>
                                 <span style="font-size: 12px; font-weight: 600; color: #28a745;">₪${fmt(totalEarned)}</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                 <span style="font-size: 12px; color: var(--text-secondary);">Restaurant Paid Gap:</span>
                                 <span style="font-size: 12px; font-weight: 600; color: ${hasGap ? '#ff6b6b' : '#28a745'};">₪${fmt(Math.max(0, monthlyGap))}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="font-size: 12px; color: var(--text-secondary);">Hourly Avg (tips):</span>
+                                <span style="font-size: 12px; font-weight: 600; color: var(--text-primary);">₪${fmt(totalHours > 0 ? totalEarned / totalHours : 0)}/h</span>
                             </div>
                         </div>
 
@@ -1942,15 +2373,15 @@
                     <span style="font-weight: 600; font-size: 18px; color: var(--text-primary);">₪${totalEarned.toFixed(2)}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: var(--text-secondary);">Min Required:</span>
+                    <span style="color: var(--text-secondary);">${t('minRequiredArchiveMsg')}</span>
                     <span style="font-weight: 600; color: var(--text-primary);">₪${totalMinRequired.toFixed(2)}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-color);">
-                    <span style="color: var(--text-secondary); font-weight: 600;">${hasGap ? '⚠️ Gap:' : '✓ Surplus:'}</span>
+                    <span style="color: var(--text-secondary); font-weight: 600;">${hasGap ? t('gapLabelArchiveMsg') : t('surplusLabelArchiveMsg')}</span>
                     <span style="font-weight: 700; color: ${hasGap ? '#ff6b6b' : '#28a745'};">₪${Math.abs(monthlyGap).toFixed(2)}</span>
                 </div>
             </div>
-            <div class="section-title">All Shifts</div>`;
+            <div class="section-title">${t('allShifts')}</div>`;
 
             // Add each shift
             monthShifts.forEach(shift => {
@@ -1991,6 +2422,7 @@
                                 </div>
                             </div>
                         </div>
+                        ${shift.notes ? `<div style="margin-top: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 6px; font-size: 12px; color: var(--text-secondary); border-left: 2px solid #FF6B9D; line-height: 1.4;">📝 ${shift.notes}</div>` : ''}
                         <div style="display: flex; gap: 8px; margin-top: 8px;">
                             <button onclick="editShift(${shift.id})" style="flex: 1; padding: 6px; background: #667EEA; color: white; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 500;">Edit</button>
                             <button onclick="deleteShift(${shift.id})" style="flex: 1; padding: 6px; background: #ff6b6b; color: white; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 500;">Delete</button>
@@ -2001,6 +2433,9 @@
 
             document.getElementById('monthModalContent').innerHTML = html;
             document.getElementById('monthModalOverlay').classList.add('active');
+            // Ensure body stays locked when modal opens
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
         }
 
         function closeMonthModal() {
@@ -2019,7 +2454,7 @@
 
             const calc = calculateDelta(shift);
             const deltaColor = calc.isGap ? '#ff6b6b' : '#28a745';
-            const deltaLabel = calc.isGap ? 'Gap (Restaurant pays)' : 'Surplus';
+            const deltaLabel = calc.isGap ? t('gapRestaurantPays') : t('surplus');
             const isDarkMode = document.body.classList.contains('dark-mode');
             const bgColor = isDarkMode ? 'var(--bg-secondary)' : '#f5f5f5';
             const textColor = isDarkMode ? 'var(--text-primary)' : '#333';
@@ -2035,18 +2470,23 @@
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 24px; font-weight: 700; color: #28a745;">₪${fmt(shift.total)}</div>
-                            <div style="font-size: 12px; color: ${tertiaryColor}; margin-top: 4px;">Total Earned</div>
+                            <div style="font-size: 12px; color: ${tertiaryColor}; margin-top: 4px;">${t('totalEarnedLabel')}</div>
                         </div>
                     </div>
 
+                    ${shift.notes ? `<div style="padding: 12px; background: var(--bg-secondary); border-radius: 12px; margin-bottom: 16px; border-left: 3px solid #FF6B9D;">
+                        <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 6px; font-weight: 500;">${t('notesLabel')}</div>
+                        <div style="font-size: 14px; color: ${textColor}; line-height: 1.5;">${shift.notes}</div>
+                    </div>` : ''}
+
                     <div style="padding: 16px; background: ${bgColor}; border-radius: 12px; margin-bottom: 16px;">
-                        <div style="font-weight: 600; font-size: 14px; color: ${textColor}; margin-bottom: 12px;">Hours & Breakdown</div>
+                        <div style="font-weight: 600; font-size: 14px; color: ${textColor}; margin-bottom: 12px;">${t('hoursAndBreakdownLabel')}</div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: ${secondaryColor};">Total Hours:</span>
+                            <span style="color: ${secondaryColor};">${t('totalHoursLabel')}</span>
                             <span style="font-weight: 600; color: ${textColor};">${calc.hours.toFixed(2)}h</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
-                            <span style="color: ${secondaryColor};">Rate Breakdown:</span>
+                            <span style="color: ${secondaryColor};">${t('rateBreakdownLabel')}</span>
                         </div>
                         <div style="font-size: 13px; color: ${secondaryColor}; line-height: 1.6;">
                             ${(() => {
@@ -2064,31 +2504,31 @@
                             })()}
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                            <span style="color: ${secondaryColor};">Average per hour:</span>
-                            <span style="font-weight: 700; color: #FF6B9D; font-size: 15px;">₪${calc.hourlyAverage.toFixed(2)}/h</span>
+                            <span style="color: ${secondaryColor};">${t('averagePerHourLabel')}</span>
+                            <span style="font-weight: 700; color: #FF6B9D; font-size: 15px;">₪${calc.hourlyAverage.toFixed(2)}${currentLanguage === 'he' ? '/ש' : '/h'}</span>
                         </div>
                     </div>
 
                     <div style="padding: 16px; background: ${bgColor}; border-radius: 12px; margin-bottom: 16px;">
-                        <div style="font-weight: 600; font-size: 14px; color: ${textColor}; margin-bottom: 12px;">Income Sources</div>
+                        <div style="font-weight: 600; font-size: 14px; color: ${textColor}; margin-bottom: 12px;">${t('incomeSourcesLabel')}</div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: ${secondaryColor};">💵 Cash Tips:</span>
+                            <span style="color: ${secondaryColor};">${t('cashTipsLabel')}</span>
                             <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.cash)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: ${secondaryColor};">💳 Card Tips:</span>
+                            <span style="color: ${secondaryColor};">${t('cardTipsLabel')}</span>
                             <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.card)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color: ${secondaryColor};">📱 Other Income:</span>
+                            <span style="color: ${secondaryColor};">${t('otherIncomeLabel')}</span>
                             <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.other)}</span>
                         </div>
                     </div>
 
                     <div style="padding: 16px; background: ${calc.isGap ? (isDarkMode ? '#2a1818' : '#fff5f5') : (isDarkMode ? '#182a18' : '#f5fff5')}; border-radius: 12px; border-left: 3px solid ${deltaColor};">
-                        <div style="font-size: 12px; color: ${deltaColor}; font-weight: 600; margin-bottom: 8px;">Minimum Wage Status</div>
+                        <div style="font-size: 12px; color: ${deltaColor}; font-weight: 600; margin-bottom: 8px;">${t('minWageStatusLabel')}</div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: ${secondaryColor};">Min Required:</span>
+                            <span style="color: ${secondaryColor};">${t('minRequiredLabel')}</span>
                             <span style="font-weight: 600; color: ${textColor};">₪${calc.minRequired.toFixed(2)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid ${deltaColor}40;">
@@ -2099,14 +2539,17 @@
                 </div>
 
                 <div style="display: flex; gap: 8px; margin-top: 20px;">
-                    <button onclick="editShift(${shift.id})" style="flex: 1; padding: 12px; background: #667EEA; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">Edit</button>
-                    <button onclick="deleteShift(${shift.id})" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">Delete</button>
+                    <button onclick="editShift(${shift.id})" style="flex: 1; padding: 12px; background: #667EEA; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">${t('editBtn')}</button>
+                    <button onclick="deleteShift(${shift.id})" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">${t('deleteBtn')}</button>
                 </div>
             `;
 
-            document.getElementById('monthModalTitle').textContent = 'Shift Details';
+            document.getElementById('monthModalTitle').textContent = t('shift');
             document.getElementById('monthModalContent').innerHTML = html;
             document.getElementById('monthModalOverlay').classList.add('active');
+            // Ensure body stays locked when modal opens
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
         }
 
         function editShift(id) {
@@ -2119,10 +2562,11 @@
             document.getElementById('cashTips').value = shift.breakdown.cash;
             document.getElementById('cardTips').value = shift.breakdown.card;
             document.getElementById('otherTips').value = shift.breakdown.other;
+            document.getElementById('shiftNotes').value = shift.notes || '';
 
             // Change modal header to indicate edit mode
-            const modalHeader = document.querySelector('.modal-header span');
-            modalHeader.textContent = 'Edit Shift';
+            const modalHeader = document.getElementById('shiftModalTitle');
+            modalHeader.textContent = t('editShift');
 
             // Store the ID we're editing
             window.editingShiftId = id;
@@ -2164,7 +2608,7 @@
                 }
             });
 
-            document.getElementById('gapsListContent').innerHTML = gapsHtml || '<p style="color: var(--text-secondary);">No gaps found</p>';
+            document.getElementById('gapsListContent').innerHTML = gapsHtml || `<p style="color: var(--text-secondary);">${t('noGapsFound')}</p>`;
             document.getElementById('gapsListModalOverlay').style.display = 'flex';
         }
 
@@ -2189,6 +2633,10 @@
             // Calculate tips-only average (without gaps)
             const tipsOnlyAvg = currentMonthShifts.length > 0 ? monthTotal / currentMonthShifts.length : 0;
             
+            // Calculate hourly average for current month
+            const monthTotalHours = currentMonthShifts.reduce((sum, s) => sum + calculateHours(s.startTime, s.endTime), 0);
+            const monthHourlyAvg = monthTotalHours > 0 ? monthTotal / monthTotalHours : 0;
+            
             // Add gaps as positive value to total (restaurant pays the gap)
             let monthGaps = 0;
             currentMonthShifts.forEach(shift => {
@@ -2202,6 +2650,7 @@
             document.getElementById('weekTotal').textContent = '₪' + fmt(monthTotalWithGaps);
             document.getElementById('tipsOnlyTotal').textContent = '₪' + fmt(monthTotal);
             document.getElementById('avgShift').textContent = '₪' + fmt(tipsOnlyAvg);
+            document.getElementById('hourlyAvgMonth').textContent = '₪' + fmt(monthHourlyAvg) + (currentLanguage === 'he' ? '/ש' : '/h');
             document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week | ${currentMonthShifts.length} shifts this month`;
 
             const totalEarned = shifts.reduce((sum, s) => sum + s.total, 0);
@@ -2241,29 +2690,29 @@
             // Monthly Stats
             const monthlyHtml = `
                 <div style="margin-bottom: 8px;">
-                    <div style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">📅 This Month</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">📅 ${t('monthly')}</div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                         <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
                             <div style="font-size: 20px; margin-bottom: 6px;">💵</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Cash</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">${t('cash')}</div>
                             <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(currentMonthCash)}</div>
                         </div>
                         <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
                             <div style="font-size: 20px; margin-bottom: 6px;">💳</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Card</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">${t('card')}</div>
                             <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(currentMonthCard)}</div>
                         </div>
                         <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
                             <div style="font-size: 20px; margin-bottom: 6px;">📱</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Other</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">${t('other')}</div>
                             <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(currentMonthOther)}</div>
                         </div>
                     </div>
 
                     <div style="padding: 12px; background: ${hasAnyGaps ? (isDarkMode ? '#2a1818' : '#fff5f5') : (isDarkMode ? '#182a18' : '#f5fff5')}; border-radius: 12px; border-left: 3px solid ${hasAnyGaps ? '#ff6b6b' : '#28a745'}; margin-bottom: 16px; cursor: ${hasAnyGaps ? 'pointer' : 'default'};" onclick="${hasAnyGaps ? 'showGapsList()' : ''}">
                         <div style="font-size: 12px; color: ${hasAnyGaps ? '#ff6b6b' : '#28a745'}; font-weight: 600;">
-                            ${hasAnyGaps ? '⚠️ Total Gaps (Restaurant pays)' : '✓ All Shifts Above Minimum'}
+                            ${hasAnyGaps ? t('totalGapsMsg') : t('allShiftsAboveMinMsg')}
                         </div>
                         <div style="font-size: 18px; font-weight: 700; color: ${hasAnyGaps ? '#ff6b6b' : '#28a745'}; margin-top: 4px;">
                             ₪${fmt(currentMonthGap)}
@@ -2272,26 +2721,30 @@
 
                     <div style="background: var(--card-bg); border-radius: 14px; padding: 16px; border: 1px solid var(--border-color); margin-bottom: 16px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="color: var(--text-secondary); font-size: 14px;">Total shifts</span>
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('totalShifts')}</span>
                             <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${currentMonthShifts.length}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="color: var(--text-secondary); font-size: 14px;">Total Hours</span>
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('totalHours')}</span>
                             <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${fmt(currentMonthHours, 1)}h</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="color: var(--text-secondary); font-size: 14px;">Total Earned</span>
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('totalEarned')}</span>
                             <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(currentMonthTotalWithGap)}</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: var(--text-secondary); font-size: 14px;">Earned Tips</span>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('earnedTips')}</span>
                             <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(currentMonthEarned)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('hourlyAvgTips')}</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(currentMonthHours > 0 ? currentMonthEarned / currentMonthHours : 0)}${currentLanguage === 'he' ? '/ש' : '/h'}</span>
                         </div>
                     </div>
 
                     ${currentMonthShifts.length > 0 ? `
                         <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); border-left: 3px solid #FF6B9D;">
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">✨ Best Shift (Profit)</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">✨ ${t('bestShiftProfit')}</div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: var(--text-primary); font-size: 14px;">${(() => {
                                     let bestShift = currentMonthShifts[0];
@@ -2327,29 +2780,29 @@
             // All-Time Stats
             const allTimeHtml = `
                 <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid var(--border-color);">
-                    <div style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">📊 All Time</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">📊 ${t('allTime')}</div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                         <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
                             <div style="font-size: 20px; margin-bottom: 6px;">💵</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Cash</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">${t('cash')}</div>
                             <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(totalCash)}</div>
                         </div>
                         <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
                             <div style="font-size: 20px; margin-bottom: 6px;">💳</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Card</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">${t('card')}</div>
                             <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(totalCard)}</div>
                         </div>
                         <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
                             <div style="font-size: 20px; margin-bottom: 6px;">📱</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Other</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">${t('other')}</div>
                             <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(totalOther)}</div>
                         </div>
                     </div>
 
                     <div style="padding: 12px; background: ${totalAllTimeGap > 0 ? (isDarkMode ? '#2a1818' : '#fff5f5') : (isDarkMode ? '#182a18' : '#f5fff5')}; border-radius: 12px; border-left: 3px solid ${totalAllTimeGap > 0 ? '#ff6b6b' : '#28a745'}; margin-bottom: 16px; cursor: ${totalAllTimeGap > 0 ? 'pointer' : 'default'};" onclick="${totalAllTimeGap > 0 ? 'showGapsList(true)' : ''}">
                         <div style="font-size: 12px; color: ${totalAllTimeGap > 0 ? '#ff6b6b' : '#28a745'}; font-weight: 600;">
-                            ${totalAllTimeGap > 0 ? '⚠️ Total Gaps (Restaurant pays)' : '✓ All Shifts Above Minimum'}
+                            ${totalAllTimeGap > 0 ? t('totalGapsMsg') : t('allShiftsAboveMinMsg')}
                         </div>
                         <div style="font-size: 18px; font-weight: 700; color: ${totalAllTimeGap > 0 ? '#ff6b6b' : '#28a745'}; margin-top: 4px;">
                             ₪${fmt(totalAllTimeGap)}
@@ -2358,26 +2811,30 @@
 
                     <div style="background: var(--card-bg); border-radius: 14px; padding: 16px; border: 1px solid var(--border-color);">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="color: var(--text-secondary); font-size: 14px;">Total shifts</span>
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('totalShifts')}</span>
                             <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${shifts.length}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="color: var(--text-secondary); font-size: 14px;">Total Earned</span>
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('totalEarned')}</span>
                             <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(totalEarned + totalAllTimeGap)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="color: var(--text-secondary); font-size: 14px;">Earned Tips</span>
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('earnedTips')}</span>
                             <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(totalEarned)}</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: var(--text-secondary); font-size: 14px;">Total Hours</span>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('totalHours')}</span>
                             <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${fmt(totalHours, 1)}h</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">${t('hourlyAvgTips')}</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(totalHours > 0 ? totalEarned / totalHours : 0)}${currentLanguage === 'he' ? '/ש' : '/h'}</span>
                         </div>
                     </div>
 
                     ${shifts.length > 0 ? `
                         <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); border-left: 3px solid #FF6B9D; margin-top: 16px;">
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">✨ Best Shift (All Time)</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">✨ ${t('bestShiftAllTime')}</div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: var(--text-primary); font-size: 14px;">${(() => {
                                     let bestShift = shifts[0];
@@ -2429,11 +2886,44 @@
             document.getElementById('sidePanelOverlay').classList.remove('active');
         }
 
+        // Swipe gesture support for side panel
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50; // minimum distance for swipe
+            const swipeDistance = touchStartX - touchEndX;
+            
+            // Swipe from right to left (opening menu)
+            if (swipeDistance > swipeThreshold && touchStartX > window.innerWidth - 50) {
+                const panel = document.getElementById('sidePanel');
+                if (!panel.classList.contains('active')) {
+                    document.getElementById('sidePanel').classList.add('active');
+                    document.getElementById('sidePanelOverlay').classList.add('active');
+                }
+            }
+            
+            // Swipe from left to right (closing menu)
+            if (swipeDistance < -swipeThreshold && touchEndX < 50) {
+                closeMenu();
+            }
+        }
+
         function menuSwitchTab(tab) {
             switchTab(tab);
             document.querySelectorAll('.side-menu-item').forEach(btn => btn.classList.remove('active-menu'));
             const activeBtn = document.querySelector(`[onclick="menuSwitchTab('${tab}')"]`);
             if (activeBtn) activeBtn.classList.add('active-menu');
+            document.getElementById('menuSettings').classList.remove('active-menu');
             closeMenu();
         }
 
@@ -2442,12 +2932,13 @@
             const btn = document.getElementById('menuDarkMode');
             const isDark = document.body.classList.contains('dark-mode');
             btn.querySelector('.side-menu-icon').textContent = isDark ? '☀️' : '🌙';
-            btn.querySelector('span:last-child').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+            btn.querySelector('span:last-child').textContent = isDark ? t('lightMode') : t('darkMode');
         }
 
         function menuOpenSettings() {
             openSettings();
             document.querySelectorAll('.side-menu-item').forEach(btn => btn.classList.remove('active-menu'));
+            document.getElementById('menuSettings').classList.add('active-menu');
             closeMenu();
         }
 
@@ -2456,10 +2947,11 @@
             document.getElementById('shiftsView').style.display = tab === 'shifts' ? 'block' : 'none';
             document.getElementById('archiveView').style.display = tab === 'archive' ? 'block' : 'none';
             document.getElementById('statsView').style.display = tab === 'stats' ? 'block' : 'none';
+            document.getElementById('weatherView').style.display = tab === 'weather' ? 'block' : 'none';
             document.getElementById('settingsView').style.display = 'none';
             
             const btnAdd = document.querySelector('.btn-add');
-            if (tab === 'stats') {
+            if (tab === 'stats' || tab === 'weather') {
                 btnAdd.classList.add('hidden');
             } else {
                 btnAdd.classList.remove('hidden');
@@ -2470,21 +2962,357 @@
             }
         }
 
-        function openSettings() {
+        function openSettings(shouldToggle = false) {
             const settingsView = document.getElementById('settingsView');
             const btnAdd = document.querySelector('.btn-add');
             if (settingsView.style.display === 'none') {
                 document.getElementById('shiftsView').style.display = 'none';
                 document.getElementById('archiveView').style.display = 'none';
                 document.getElementById('statsView').style.display = 'none';
+                document.getElementById('weatherView').style.display = 'none';
                 settingsView.style.display = 'block';
                 btnAdd.classList.add('hidden');
-            } else {
+            } else if (shouldToggle) {
                 settingsView.style.display = 'none';
                 btnAdd.classList.remove('hidden');
                 switchTab('shifts');
             }
         }
+
+        // Weather Functions
+        let weatherLocations = JSON.parse(localStorage.getItem('weatherLocations')) || [
+            { name: 'Tel Aviv', latitude: 32.0853, longitude: 34.7818 }
+        ];
+        let currentWeatherLocation = localStorage.getItem('currentWeatherLocation') || 'Tel Aviv';
+
+        function initializeWeather() {
+            updateWeatherLocationSelect();
+            loadWeather();
+        }
+
+        function updateWeatherLocationSelect() {
+            const select = document.getElementById('weatherLocationSelect');
+            select.innerHTML = '';
+            if (weatherLocations.length === 0) {
+                select.style.display = 'none';
+            } else {
+                select.style.display = '';
+                weatherLocations.forEach(loc => {
+                    const option = document.createElement('option');
+                    option.value = loc.name;
+                    option.textContent = loc.name;
+                    option.selected = loc.name === currentWeatherLocation;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        let searchTimeout;
+        function searchWeatherLocation(query) {
+            const resultsDiv = document.getElementById('weatherSearchResults');
+            
+            if (!query || query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            clearTimeout(searchTimeout);
+            resultsDiv.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); font-size: 14px;">🔍 Searching...</div>';
+            resultsDiv.style.display = 'block';
+            
+            searchTimeout = setTimeout(() => {
+                fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=${currentLanguage}&format=json`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Search failed');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data.results || data.results.length === 0) {
+                            resultsDiv.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); font-size: 14px;">No locations found</div>';
+                            return;
+                        }
+                        
+                        let html = '';
+                        data.results.forEach(result => {
+                            const displayName = `${result.name}${result.admin1 ? ', ' + result.admin1 : ''}${result.country ? ', ' + result.country : ''}`;
+                            html += `
+                                <div onclick="selectWeatherLocation('${displayName}', ${result.latitude}, ${result.longitude})" 
+                                    style="padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; color: var(--text-primary);"
+                                    onmouseover="this.style.background='var(--bg-primary)'" 
+                                    onmouseout="this.style.background='transparent'">
+                                    <div style="font-weight: 600;">${result.name}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">${result.admin1 ? result.admin1 + ', ' : ''}${result.country || ''}</div>
+                                </div>
+                            `;
+                        });
+                        resultsDiv.innerHTML = html;
+                    })
+                    .catch(error => {
+
+                        resultsDiv.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); font-size: 14px;">Search failed. Try again.</div>';
+                    });
+            }, 300);
+        }
+
+        function selectWeatherLocation(displayName, latitude, longitude) {
+            // Check if already saved
+            const existing = weatherLocations.find(l => l.name === displayName);
+            if (!existing) {
+                weatherLocations.push({ name: displayName, latitude, longitude });
+                localStorage.setItem('weatherLocations', JSON.stringify(weatherLocations));
+            }
+            
+            currentWeatherLocation = displayName;
+            localStorage.setItem('currentWeatherLocation', currentWeatherLocation);
+            document.getElementById('weatherSearchInput').value = '';
+            document.getElementById('weatherSearchResults').style.display = 'none';
+            updateWeatherLocationSelect();
+            
+            // Now load the weather with a small delay to ensure dropdown is updated
+            setTimeout(() => loadWeather(), 100);
+        }
+
+        function switchWeatherLocation() {
+            const select = document.getElementById('weatherLocationSelect');
+            currentWeatherLocation = select.value;
+            localStorage.setItem('currentWeatherLocation', currentWeatherLocation);
+            loadWeather();
+        }
+
+        function useDeviceLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation not supported on this device.');
+                return;
+            }
+            
+            alert('Please allow location access...');
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    
+                    // Reverse geocode to get location name
+                    fetch(`https://geocoding-api.open-meteo.com/v1/search?latitude=${latitude}&longitude=${longitude}&language=${currentLanguage}&format=json`)
+                        .then(response => {
+                            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.results && data.results.length > 0) {
+                                const result = data.results[0];
+                                const displayName = `${result.name}${result.admin1 ? ', ' + result.admin1 : ''}${result.country ? ', ' + result.country : ''}`;
+                                const newLocation = { name: displayName, latitude, longitude };
+                                
+                                weatherLocations.push(newLocation);
+                                localStorage.setItem('weatherLocations', JSON.stringify(weatherLocations));
+                                updateWeatherLocationSelect();
+                                currentWeatherLocation = displayName;
+                                localStorage.setItem('currentWeatherLocation', currentWeatherLocation);
+                                loadWeather();
+                            }
+                        })
+                        .catch(error => {
+
+                            alert('Found location but could not get name: ' + error.message);
+                        });
+                },
+                (error) => {
+                    alert('Could not access device location: ' + error.message);
+                }
+            );
+        }
+
+        async function loadWeather() {
+            const location = weatherLocations.find(l => l.name === currentWeatherLocation);
+            if (!location) {
+                document.getElementById('weatherContent').innerHTML = '<div style="color: var(--text-secondary); padding: 16px;">Select a location</div>';
+                return;
+            }
+
+            try {
+                document.getElementById('weatherContent').innerHTML = '<div style="color: var(--text-secondary); padding: 16px;">Loading weather...</div>';
+                
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,uv_index_max,precipitation_probability_max&timezone=auto`;
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}`);
+                }
+                
+                const data = await response.json();
+                if (!data.current) {
+                    throw new Error('Invalid weather data');
+                }
+                
+                displayWeather(data, location.name);
+            } catch (error) {
+                document.getElementById('weatherContent').innerHTML = `<div style="color: var(--text-secondary); padding: 16px;">
+                    <div style="margin-bottom: 8px;">⚠️ Failed to load weather</div>
+                    <div style="font-size: 12px; color: var(--text-tertiary);">${error.message}</div>
+                    <div style="margin-top: 12px;"><button onclick="loadWeather()" style="padding: 8px 16px; background: #FF6B9D; color: white; border: none; border-radius: 6px; cursor: pointer;">Retry</button></div>
+                </div>`;
+            }
+        }
+
+        function getWeatherDescription(code) {
+            const codes = {
+                0: '☀️ Clear',
+                1: '🌤️ Mainly Clear',
+                2: '⛅ Partly Cloudy',
+                3: '☁️ Overcast',
+                45: '🌫️ Foggy',
+                48: '🌫️ Depositing Rime Fog',
+                51: '🌧️ Light Drizzle',
+                53: '🌧️ Moderate Drizzle',
+                55: '🌧️ Dense Drizzle',
+                61: '🌧️ Slight Rain',
+                63: '🌧️ Moderate Rain',
+                65: '⛈️ Heavy Rain',
+                71: '❄️ Slight Snow',
+                73: '❄️ Moderate Snow',
+                75: '❄️ Heavy Snow',
+                80: '🌧️ Slight Showers',
+                81: '🌧️ Moderate Showers',
+                82: '⛈️ Violent Showers',
+                95: '⛈️ Thunderstorm'
+            };
+            return codes[code] || 'Unknown';
+        }
+
+        function displayWeather(data, locationName) {
+            const current = data.current;
+            const daily = data.daily;
+
+            let html = `
+                <div style="padding: 16px; background: var(--card-bg); border-radius: 12px; margin-bottom: 20px; border-left: 3px solid #FF6B9D;">
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">TODAY</div>
+                    <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">${Math.round(current.temperature_2m)}°</div>
+                    <div style="font-size: 16px; color: var(--text-secondary); margin-bottom: 12px;">${getWeatherDescription(current.weather_code)}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--text-secondary);">💨 Wind</div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${Math.round(current.wind_speed_10m)} km/h</div>
+                        </div>
+                        <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--text-secondary);">💧 Humidity</div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${current.relative_humidity_2m}%</div>
+                        </div>
+                        <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--text-secondary);">☀️ UV Index</div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${current.uv_index}</div>
+                        </div>
+                        <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--text-secondary);">📍 ${locationName}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">7-DAY FORECAST</div>
+                    <div style="display: flex; gap: 10px; overflow-x: auto; padding: 4px 0; scrollbar-width: none;" id="weatherForecast">
+            `;
+
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(daily.time[i]);
+                const dayOfWeekNum = date.getDay();
+                const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                const day = t(dayNames[dayOfWeekNum]);
+                const dayNum = date.getDate();
+                const rainChance = daily.precipitation_probability_max[i] || 0;
+                
+                html += `
+                    <div onclick="showWeatherDayDetails(${i}, '${daily.time[i]}')" style="min-width: 100px; padding: 12px; background: var(--bg-primary); border-radius: 8px; text-align: center; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s; color: var(--text-primary);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="font-size: 12px; font-weight: 600; color: var(--text-primary);">${day}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">${dayNum}</div>
+                        <div style="font-size: 18px; margin: 6px 0;">${getWeatherDescription(daily.weather_code[i]).split(' ')[0]}</div>
+                        <div style="font-size: 12px; color: var(--text-primary); font-weight: 600;">${Math.round(daily.temperature_2m_max[i])}° / ${Math.round(daily.temperature_2m_min[i])}°</div>
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px;">💨 ${Math.round(daily.wind_speed_10m_max[i])} km/h</div>
+                        <div style="font-size: 10px; color: ${rainChance > 50 ? '#FF6B9D' : 'var(--text-secondary)'}; margin-top: 4px; font-weight: ${rainChance > 30 ? '600' : '400'};">🌧️ ${rainChance}%</div>
+                    </div>
+                `;
+            }
+
+            html += `
+                    </div>
+                </div>
+                <div id="weatherDayDetails"></div>
+            `;
+
+            document.getElementById('weatherContent').innerHTML = html;
+        }
+
+        function showWeatherDayDetails(dayIndex, dateStr) {
+            const date = new Date(dateStr);
+            
+            // Get translated day name
+            const dayOfWeekNum = date.getDay();
+            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const dayName = t(dayNames[dayOfWeekNum]);
+            
+            // Get translated month name
+            const monthNum = date.getMonth();
+            const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+            const monthName = t(monthNames[monthNum]);
+            
+            const dayNum = date.getDate();
+            const formattedDayName = `${dayName}, ${monthName} ${dayNum}`;
+            
+            // Get weather data again to show details
+            const location = weatherLocations.find(l => l.name === currentWeatherLocation);
+            if (!location) return;
+
+            fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,uv_index_max,precipitation_probability_max&timezone=auto`
+            )
+            .then(response => response.json())
+            .then(data => {
+                const daily = data.daily;
+                const rainChance = daily.precipitation_probability_max[dayIndex] || 0;
+                const detailsHtml = `
+                    <div style="padding: 16px; background: var(--card-bg); border-radius: 12px; margin-top: 16px; border-left: 3px solid #FF6B9D;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${formattedDayName}</div>
+                                <div style="font-size: 28px; font-weight: 700; color: var(--text-primary);">${getWeatherDescription(daily.weather_code[dayIndex])}</div>
+                            </div>
+                            <button onclick="document.getElementById('weatherDayDetails').innerHTML=''" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-primary);">✕</button>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary);">🌡️ High</div>
+                                <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${Math.round(daily.temperature_2m_max[dayIndex])}°</div>
+                            </div>
+                            <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary);">🌡️ Low</div>
+                                <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${Math.round(daily.temperature_2m_min[dayIndex])}°</div>
+                            </div>
+                            <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary);">💨 Wind</div>
+                                <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${Math.round(daily.wind_speed_10m_max[dayIndex])} km/h</div>
+                            </div>
+                            <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary);">☀️ UV Index</div>
+                                <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${Math.round(daily.uv_index_max[dayIndex])}</div>
+                            </div>
+                            <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary);">🌧️ Rain Chance</div>
+                                <div style="font-size: 18px; font-weight: 600; color: ${rainChance > 50 ? '#FF6B9D' : 'var(--text-primary)'};">${rainChance}%</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('weatherDayDetails').innerHTML = detailsHtml;
+            })
+            .catch(error => {});
+        }
+
+        initializeWeather();
+
+        // Continuous overflow enforcer - ensure body never becomes scrollable
+        setInterval(() => {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+        }, 100);
 
         initializeApp();
     </script>
