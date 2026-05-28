@@ -373,7 +373,7 @@
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.5);
-            z-index: 20;
+            z-index: 102;
             animation: fadeIn 0.3s ease;
             justify-content: center;
             align-items: flex-end;
@@ -737,6 +737,96 @@
             margin: 8px 16px;
         }
 
+        /* Jobs Panel */
+        .jobs-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 280px;
+            max-width: 80%;
+            background: var(--card-bg);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+
+        .jobs-panel.active {
+            transform: translateX(0);
+        }
+
+        .jobs-panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .jobs-panel-back {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .jobs-panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .jobs-panel-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .job-item {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s ease;
+        }
+
+        .job-item:active {
+            background: var(--bg-primary);
+        }
+
+        .job-item.active {
+            background: rgba(255, 107, 157, 0.1);
+            border-color: #FF6B9D;
+            color: #FF6B9D;
+            font-weight: 600;
+        }
+
+        .job-item-checkmark {
+            font-size: 16px;
+        }
+
+        body.dark-mode .jobs-panel {
+            background: #1a1a1a;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -1036,8 +1126,9 @@
                         </g>
                     </svg>
                     <div style="display: flex; flex-direction: column; gap: 0;">
-                        <h1 style="margin: 0; font-size: 26px; font-weight: 700; line-height: 1;">Lillytip</h1>
-                        <p id="headerSubtitle" style="margin: 4px 0 0 0;">Track your earnings</p>
+                        <h1 style="margin: 0; font-size: 26px; font-weight: 700; line-height: 1; color: #fff;">Lillytip</h1>
+                        <p id="headerSubtitle" style="margin: 4px 0 2px 0; font-size: 13px; color: var(--text-primary);">Track your earnings</p>
+                        <p id="headerJobName" style="margin: 0; font-size: 12px; color: var(--text-secondary);">Current job: <span id="jobNameDisplay" style="color: var(--text-secondary); font-weight: 500;">My First Job</span></p>
                     </div>
                 </div>
             </div>
@@ -1047,7 +1138,7 @@
         </div>
 
         <!-- Side Panel Overlay -->
-        <div id="sidePanelOverlay" class="side-panel-overlay" onclick="closeMenu()"></div>
+        <div id="sidePanelOverlay" class="side-panel-overlay" onclick="if(document.getElementById('jobsPanel').classList.contains('active')) { closeJobsPanel(); } else { closeMenu(); }"></div>
 
         <!-- Side Panel -->
         <div id="sidePanel" class="side-panel">
@@ -1056,6 +1147,10 @@
                 <button class="side-panel-close" onclick="closeMenu()">✕</button>
             </div>
             <div class="side-panel-content">
+                <div style="padding: 12px 16px; margin-bottom: 8px; background: rgba(255, 107, 157, 0.08); border-radius: 8px; border-left: 3px solid #FF6B9D;">
+                    <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px; text-transform: uppercase;">Current Job</div>
+                    <div id="sidePanelJobName" style="font-size: 15px; color: #FF6B9D; font-weight: 600;">My First Job</div>
+                </div>
                 <button onclick="menuSwitchTab('shifts')" class="side-menu-item active-menu">
                     <span class="side-menu-icon">📋</span>
                     <span id="menuShifts">Shifts</span>
@@ -1073,6 +1168,10 @@
                     <span id="menuWeather">Weather</span>
                 </button>
                 <div class="side-menu-divider"></div>
+                <button onclick="openJobsPanel()" id="menuJobs" class="side-menu-item">
+                    <span class="side-menu-icon">💼</span>
+                    <span id="menuJobsLabel">Jobs</span>
+                </button>
                 <button onclick="menuToggleDarkMode()" id="menuDarkMode" class="side-menu-item">
                     <span class="side-menu-icon">🌙</span>
                     <span id="menuDarkLabel">Dark Mode</span>
@@ -1083,7 +1182,41 @@
                 </button>
             </div>
             <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center;">
-                <span style="font-size: 11px; color: var(--text-tertiary);">v0.2.6</span>
+                <span style="font-size: 11px; color: var(--text-tertiary); cursor: pointer; transition: color 0.2s;" onclick="showChangelog()" onmouseover="this.style.color='#FF6B9D'" onmouseout="this.style.color='var(--text-tertiary)'">v0.3.1</span>
+            </div>
+        </div>
+
+        <!-- Jobs Sub-Panel -->
+        <div id="jobsPanel" class="jobs-panel">
+            <div class="jobs-panel-header">
+                <button class="jobs-panel-back" onclick="closeJobsPanel()">← Back</button>
+                <span class="jobs-panel-title" id="jobsPanelTitle">Jobs</span>
+            </div>
+            <div class="jobs-panel-content">
+                <div id="jobsList" style="margin-bottom: 16px;"></div>
+                <button onclick="openCreateJobModal()" style="width: 100%; padding: 12px 16px; background: #FF6B9D; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">+ New Job</button>
+            </div>
+        </div>
+
+        <!-- Create Job Modal -->
+        <div id="createJobModalOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1002; align-items: center; justify-content: center;" onclick="if(event.target === this) closeCreateJobModal()">
+            <div onclick="event.stopPropagation()" style="background: var(--card-bg); border-radius: 12px; padding: 0; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 id="jobModalTitle" style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary);">New Job</h3>
+                    <button onclick="closeCreateJobModal()" style="background: none; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; padding: 0;">✕</button>
+                </div>
+                <div style="padding: 20px;">
+                    <label style="display: block;">
+                        <span style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Job Name</span>
+                        <input type="text" id="jobNameInput" placeholder="e.g., The Tavern, Café Nordau" 
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text-primary); font-size: 14px; box-sizing: border-box;"
+                            onkeyup="if(event.key === 'Enter') submitJobModal()">
+                    </label>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
+                    <button onclick="submitJobModal()" id="jobModalBtn" style="flex: 1; padding: 12px; background: #667EEA; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Create</button>
+                    <button onclick="closeCreateJobModal()" style="flex: 1; padding: 12px; background: var(--border-color); color: var(--text-primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancel</button>
+                </div>
             </div>
         </div>
 
@@ -1157,13 +1290,13 @@
                 
                 <div class="settings-option">
                     <div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">Minimum Wage (₪/hour)</div>
-                        <div style="font-size: 12px; color: #999;">Currently: ₪<span id="minWageDisplay">35.41</span>/hour</div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Wage (₪/hour)</div>
+                        <div style="font-size: 12px; color: #999;">Current wage: ₪<span id="minWageDisplay">35.41</span>/hour</div>
                     </div>
                 </div>
                 
                 <div style="display: flex; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--border-color);">
-                    <input type="number" id="minWageInput" placeholder="35.41" step="0.01" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);">
+                    <input type="number" id="minWageInput" placeholder="Minimum wage: 35.41" step="0.01" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);" onfocus="document.getElementById('minWageInput').placeholder = ''">
                     <button onclick="updateMinWage()" style="padding: 10px 16px; background: #667EEA; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">Update</button>
                 </div>
 
@@ -1173,6 +1306,17 @@
                         <div style="font-size: 12px; color: var(--text-secondary);">Enable overtime rate calculations</div>
                     </div>
                     <input type="checkbox" id="enable125Rule" style="width: 20px; height: 20px; cursor: pointer;" onchange="toggle125Rule()">
+                </div>
+                
+                <div class="settings-option">
+                    <div>
+                        <div style="font-weight: 600;" id="paymentMethodLabel">Payment Method</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);" id="paymentMethodDesc">Min Wage + Tips</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="setPaymentStructure('minWageTips')" id="btnMinWageTips" style="flex: 1; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-primary); font-weight: 500; cursor: pointer;">Min Wage + Tips</button>
+                        <button onclick="setPaymentStructure('tipsOnly')" id="btnTipsOnly" style="flex: 1; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-primary); font-weight: 500; cursor: pointer;">Tips Only</button>
+                    </div>
                 </div>
                 
                 <div class="settings-option">
@@ -1318,13 +1462,92 @@
                 <div id="monthModalContent"></div>
             </div>
         </div>
+
+        <!-- Changelog Modal -->
+        <div class="month-modal-overlay" id="changelogOverlay" onclick="if(event.target === this) closeChangelog()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div style="background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 16px; width: 90%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color);">
+                    <h2 style="margin: 0; color: var(--text-primary); font-size: 20px; font-weight: 700;">Changelog</h2>
+                    <button onclick="closeChangelog()" style="background: none; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">✕</button>
+                </div>
+                <div id="changelogContent" style="overflow-y: auto; padding: 20px; font-size: 14px; line-height: 1.6; color: var(--text-primary);">
+                    <div style="text-align: center; color: var(--text-secondary);">Loading changelog...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal (Step 1) -->
+        <div id="deleteConfirmOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;" onclick="if(event.target === this) closeDeleteConfirm()">
+            <div onclick="event.stopPropagation()" style="background: var(--card-bg); border-radius: 12px; padding: 0; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary);">Delete Job?</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <p id="deleteConfirmMsg" style="margin: 0; color: var(--text-primary); font-size: 14px; line-height: 1.6;"></p>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
+                    <button onclick="proceedDeleteJob()" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Yes, Delete</button>
+                    <button onclick="closeDeleteConfirm()" style="flex: 1; padding: 12px; background: var(--border-color); color: var(--text-primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal (Step 2) -->
+        <div id="deleteFinalOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;" onclick="if(event.target === this) closeFinalDelete()">
+            <div onclick="event.stopPropagation()" style="background: var(--card-bg); border-radius: 12px; padding: 0; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #ff6b6b;">⚠️ Cannot Undo</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <p id="deleteFinalMsg" style="margin: 0; color: var(--text-primary); font-size: 14px; line-height: 1.6;"></p>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
+                    <button onclick="finalizeDeleteJob()" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Delete Permanently</button>
+                    <button onclick="closeFinalDelete()" style="flex: 1; padding: 12px; background: var(--border-color); color: var(--text-primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Data Modal -->
+        <div id="importModalOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;" onclick="if(event.target === this) closeImportModal()">
+            <div onclick="event.stopPropagation()" style="background: var(--card-bg); border-radius: 12px; padding: 0; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+                    <h3 id="importModalTitle" style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary);">Import Backup</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <p id="importModalMsg" style="margin: 0; color: var(--text-primary); font-size: 14px; line-height: 1.6;"></p>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
+                    <button onclick="proceedImport('replace')" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Replace All</button>
+                    <button onclick="closeImportModal()" style="flex: 1; padding: 12px; background: var(--border-color); color: var(--text-primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Success Modal -->
+        <div id="importSuccessOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;" onclick="if(event.target === this) closeImportSuccess()">
+            <div onclick="event.stopPropagation()" style="background: var(--card-bg); border-radius: 12px; padding: 0; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #28a745;">✅ Import Successful</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <p id="importSuccessMsg" style="margin: 0; color: var(--text-primary); font-size: 14px; line-height: 1.6;"></p>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid var(--border-color);">
+                    <button onclick="closeImportSuccess()" style="width: 100%; padding: 12px; background: #667EEA; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">OK</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         let shifts = [];
         let currentTab = 'shifts';
-        let minWage = parseFloat(localStorage.getItem('minWage')) || 35.41;
+        let minWage = 31.50; // Default, will be overridden by job settings in initializeApp
+        let enable125 = true; // Default, will be overridden by job settings in initializeApp
         let currentLanguage = localStorage.getItem('appLanguage') || 'en';
+        let jobs = [];
+        let currentJobId = null;
 
         // Translation system
         const translations = {
@@ -1333,6 +1556,7 @@
                 archive: 'Archive',
                 stats: 'Stats',
                 weather: 'Weather',
+                jobs: 'Jobs',
                 settings: 'Settings',
                 darkMode: 'Dark Mode',
                 lightMode: 'Light Mode',
@@ -1368,7 +1592,8 @@
                 exportData: 'Export Data (JSON)',
                 importData: 'Import Data (JSON)',
                 monthly: 'Monthly',
-                thisMonthWithGap: 'This Month (with gap)',
+                thisMonthWithGap: 'This Month (with salary)',
+                thisMonthSalary: 'This Month (with salary)',
                 tipsOnlyThisMonth: 'Tips Only (this month)',
                 avgPerShift: 'Avg Per Shift (tips only)',
                 hourlyAvgTips: 'Hourly Avg (tips only)',
@@ -1457,13 +1682,18 @@
                 selectLocation: 'Select a location',
                 dataStoredLocally: '💾 All data is stored locally on this device. No cloud backup. Export regularly to keep backups.',
                 iLoveYou: 'אני אוהב אותך קמוליק ❤️',
-                monthDetails: 'Month Details'
+                monthDetails: 'Month Details',
+                paymentMethod: 'Payment Method',
+                minWageTips: 'Minimum Wage + Tips',
+                tipsOnly: 'Tips Only',
+                paymentStructure: 'Payment Structure'
             },
             he: {
                 shifts: 'משמרות',
                 archive: 'ארכיון',
                 stats: 'סטטיסטיקה',
                 weather: 'מזג אוויר',
+                jobs: 'עבודות',
                 settings: 'הגדרות',
                 darkMode: 'מצב כהה',
                 lightMode: 'מצב בהיר',
@@ -1499,7 +1729,7 @@
                 exportData: 'ייצוא נתונים (JSON)',
                 importData: 'ייבוא נתונים (JSON)',
                 monthly: 'חודשי',
-                thisMonthWithGap: 'החודש הזה (עם השלמות)',
+                thisMonthWithGap: 'החודש הזה (עם משכורת)',
                 tipsOnlyThisMonth: 'טיפים בלבד (החודש הזה)',
                 avgPerShift: 'ממוצע לכל משמרה (טיפים בלבד)',
                 hourlyAvgTips: 'ממוצע לשעה (טיפים בלבד)',
@@ -1588,7 +1818,11 @@
                 september: 'ספטמבר',
                 october: 'אוקטובר',
                 november: 'נובמבר',
-                december: 'דצמבר'
+                december: 'דצמבר',
+                paymentMethod: 'שיטת תשלום',
+                minWageTips: 'שכר מינימום + טיפס',
+                tipsOnly: 'טיפס בלבד',
+                paymentStructure: 'מבנה תשלום'
             }
         };
 
@@ -1613,6 +1847,7 @@
             const menuArchive = document.getElementById('menuArchive');
             const menuStats = document.getElementById('menuStats');
             const menuWeather = document.getElementById('menuWeather');
+            const menuJobsLabel = document.getElementById('menuJobsLabel');
             const menuDarkLabel = document.getElementById('menuDarkLabel');
             const menuSettingsLabel = document.getElementById('menuSettingsLabel');
             
@@ -1620,6 +1855,7 @@
             if (menuArchive) menuArchive.textContent = t('archive');
             if (menuStats) menuStats.textContent = t('stats');
             if (menuWeather) menuWeather.textContent = t('weather');
+            if (menuJobsLabel) menuJobsLabel.textContent = t('jobs');
             if (menuDarkLabel) {
                 const isDark = document.body.classList.contains('dark-mode');
                 menuDarkLabel.textContent = isDark ? t('lightMode') : t('darkMode');
@@ -1681,7 +1917,8 @@
 
         function toggle125Rule() {
             const enabled = document.getElementById('enable125Rule').checked;
-            localStorage.setItem('enable125Rule', enabled);
+            enable125 = enabled;
+            setJobSetting('enable125', enabled);
             renderShifts();
             renderArchive();
             updateStats();
@@ -1699,13 +1936,49 @@
                 return;
             }
             minWage = newMinWage;
-            localStorage.setItem('minWage', minWage);
+            setJobSetting('minWage', minWage);
             document.getElementById('minWageDisplay').textContent = minWage.toFixed(2);
             document.getElementById('minWageInput').value = '';
             renderShifts();
             renderArchive();
             updateStats();
             alert('Minimum wage updated to ₪' + minWage.toFixed(2) + '/hour');
+        }
+
+        function setPaymentStructure(structure) {
+            setJobSetting('paymentStructure', structure);
+            const job = jobs.find(j => j.id === currentJobId);
+            if (job) job.paymentStructure = structure;
+            
+            // Update UI button styles
+            updatePaymentStructureUI();
+            
+            renderShifts();
+            renderArchive();
+            updateStats();
+        }
+
+        function updatePaymentStructureUI() {
+            const structure = getJobPaymentStructure();
+            const btnMin = document.getElementById('btnMinWageTips');
+            const btnTips = document.getElementById('btnTipsOnly');
+            if (btnMin && btnTips) {
+                if (structure === 'minWageTips') {
+                    btnMin.style.borderColor = '#FF6B9D';
+                    btnMin.style.color = '#FF6B9D';
+                    btnMin.style.fontWeight = '600';
+                    btnTips.style.borderColor = 'var(--border-color)';
+                    btnTips.style.color = 'var(--text-primary)';
+                    btnTips.style.fontWeight = '500';
+                } else {
+                    btnTips.style.borderColor = '#FF6B9D';
+                    btnTips.style.color = '#FF6B9D';
+                    btnTips.style.fontWeight = '600';
+                    btnMin.style.borderColor = 'var(--border-color)';
+                    btnMin.style.color = 'var(--text-primary)';
+                    btnMin.style.fontWeight = '500';
+                }
+            }
         }
 
         function calculateHours(startTime, endTime, isOvernightShift = false) {
@@ -1753,7 +2026,6 @@
 
         function calculateDelta(shift) {
             const hours = calculateHours(shift.startTime, shift.endTime);
-            const enable125 = localStorage.getItem('enable125Rule') !== 'false';
             
             // Calculate minimum wage with overtime tiers
             let minRequired = 0;
@@ -1781,15 +2053,37 @@
             }
             
             const delta = shift.total - minRequired;
-            const hourlyAverage = hours > 0 ? shift.total / hours : 0;
+            
+            // Calculate hourly average based on payment structure
+            let displayHourlyAverage = 0;
+            const structure = getJobPaymentStructure();
+            if (structure === 'minWageTips') {
+                // For wage + tips: average is (tips + min wage) / hours
+                displayHourlyAverage = hours > 0 ? (shift.total + minRequired) / hours : 0;
+            } else {
+                // For tips only: average is tips / hours
+                displayHourlyAverage = hours > 0 ? shift.total / hours : 0;
+            }
+            
             return {
                 hours: hours,
                 minRequired: minRequired,
                 delta: delta,
                 isGap: delta < 0,
                 overtimeHours: Math.max(0, hours - 8),
-                hourlyAverage: hourlyAverage
+                hourlyAverage: displayHourlyAverage
             };
+        }
+
+        function getDisplayEarnings(shift, calc) {
+            const structure = getJobPaymentStructure();
+            if (structure === 'minWageTips') {
+                // For Min Wage + Tips: show minimum wage + tips received
+                return calc.minRequired + shift.total;
+            } else {
+                // For Tips Only: show just tips
+                return shift.total;
+            }
         }
 
         function toggleDarkMode() {
@@ -1806,21 +2100,53 @@
 
         function exportData() {
             try {
-                const dataStr = JSON.stringify(shifts, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(dataBlob);
+                let allShifts = [];
+                let jobsList = jobs || [];
+                
+                // Collect shifts from all jobs
+                jobsList.forEach(job => {
+                    const key = 'shifts_' + job.id;
+                    const stored = localStorage.getItem(key);
+                    if (stored) {
+                        try {
+                            const jobShifts = JSON.parse(stored);
+                            allShifts = allShifts.concat(jobShifts);
+                        } catch (e) {
+                            console.error('Error parsing shifts for job:', job.id, e);
+                        }
+                    }
+                });
+                
+                console.log('Exporting ' + allShifts.length + ' shifts from ' + jobsList.length + ' jobs');
+
+                // Create backup file
+                const backup = {
+                    shifts: allShifts,
+                    jobs: jobsList,
+                    exportDate: new Date().toISOString(),
+                    version: 'v0.3.1'
+                };
+                
+                const dataStr = JSON.stringify(backup, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = `tips-data-${new Date().toISOString().split('T')[0]}.json`;
+                link.download = 'lillytip-backup-' + new Date().toISOString().split('T')[0] + '.json';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
-                alert('✅ Data exported successfully!');
+                
+                alert('✅ Backup exported!\n' + allShifts.length + ' shifts\n' + jobsList.length + ' profiles');
             } catch (error) {
-                alert('❌ Error exporting data: ' + error.message);
+                console.error('Export error:', error);
+                alert('❌ Error: ' + error.message);
             }
         }
+
+        let importPendingData = null;
+        let importPendingJobs = null;
 
         function importData(event) {
             const file = event.target.files[0];
@@ -1829,40 +2155,47 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const importedData = JSON.parse(e.target.result);
+                    const fileData = JSON.parse(e.target.result);
                     
-                    if (!Array.isArray(importedData)) {
+                    // Check if it's new format (object with jobs and shifts) or old format (array of shifts)
+                    let importedShifts = [];
+                    let importedJobs = null;
+
+                    if (Array.isArray(fileData)) {
+                        // Old format: just shifts array
+                        importedShifts = fileData;
+                    } else if (fileData.shifts && Array.isArray(fileData.shifts)) {
+                        // New format: object with shifts, jobs, settings
+                        importedShifts = fileData.shifts || [];
+                        importedJobs = fileData.jobs || null;
+                    } else {
                         alert('Invalid file format. Please use an exported JSON file from this app.');
                         return;
                     }
 
-                    const isValidShifts = importedData.every(shift => 
+                    // Validate shifts
+                    const isValidShifts = importedShifts.every(shift => 
                         shift.id && shift.date && shift.startTime && shift.endTime && 
                         shift.total !== undefined && shift.breakdown
                     );
 
-                    if (!isValidShifts && importedData.length > 0) {
+                    if (!isValidShifts && importedShifts.length > 0) {
                         alert('Invalid file format. The shifts data is corrupted or from a different version.');
                         return;
                     }
 
-                    const action = confirm(
-                        `Found ${importedData.length} shifts in the file.\n\n` +
-                        'Click OK to MERGE with existing data, or Cancel to REPLACE all data.'
-                    );
+                    // Store data and show modal
+                    importPendingData = importedShifts;
+                    importPendingJobs = importedJobs;
 
-                    if (action) {
-                        shifts = [...shifts, ...importedData];
-                        alert(`✅ Successfully merged ${importedData.length} shifts!`);
-                    } else {
-                        shifts = importedData;
-                        alert(`✅ Successfully imported ${importedData.length} shifts!`);
+                    let msg = `This will replace all your current shifts and profiles with ${importedShifts.length} shifts`;
+                    if (importedJobs && importedJobs.length > 0) {
+                        msg += ` and ${importedJobs.length} profiles`;
                     }
+                    msg += ` from the backup.`;
 
-                    saveToLocalStorage();
-                    renderShifts();
-                    renderArchive();
-                    updateStats();
+                    document.getElementById('importModalMsg').textContent = msg;
+                    document.getElementById('importModalOverlay').style.display = 'flex';
                     
                 } catch (error) {
                     alert('Error reading file: ' + error.message);
@@ -1870,6 +2203,75 @@
             };
             reader.readAsText(file);
             event.target.value = '';
+        }
+
+        function proceedImport(action) {
+            closeImportModal();
+
+            // Always replace
+            shifts = [];
+            
+            if (importPendingJobs && importPendingJobs.length > 0) {
+                // Restore jobs
+                jobs = importPendingJobs;
+                saveJobs();
+                
+                // Restore shifts for each job
+                const shiftsPerJob = {};
+                importPendingJobs.forEach(job => {
+                    shiftsPerJob[job.id] = [];
+                });
+                
+                // Distribute shifts to their jobs based on jobId
+                importPendingData.forEach(shift => {
+                    if (shift.jobId && shiftsPerJob[shift.jobId]) {
+                        shiftsPerJob[shift.jobId].push(shift);
+                    } else if (importPendingJobs.length > 0) {
+                        // If no jobId, assign to first job
+                        shiftsPerJob[importPendingJobs[0].id].push(shift);
+                    }
+                });
+                
+                // Save shifts for each job
+                importPendingJobs.forEach(job => {
+                    const jobShiftsKey = 'shifts_' + job.id;
+                    localStorage.setItem(jobShiftsKey, JSON.stringify(shiftsPerJob[job.id] || []));
+                });
+                
+                // Switch to first job
+                if (jobs.length > 0) {
+                    switchJob(jobs[0].id);
+                }
+            } else {
+                // Old backup with no jobs - just restore shifts to current job
+                shifts = importPendingData;
+                saveToLocalStorage();
+            }
+
+            renderShifts();
+            renderArchive();
+            updateStats();
+
+            // Show success modal
+            let successMsg = `✅ Successfully restored backup with ${importPendingData.length} shifts`;
+            if (importPendingJobs && importPendingJobs.length > 0) {
+                successMsg += ` and ${importPendingJobs.length} profiles`;
+            }
+            successMsg += '!';
+
+            document.getElementById('importSuccessMsg').textContent = successMsg;
+            document.getElementById('importSuccessOverlay').style.display = 'flex';
+
+            importPendingData = null;
+            importPendingJobs = null;
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModalOverlay').style.display = 'none';
+        }
+
+        function closeImportSuccess() {
+            document.getElementById('importSuccessOverlay').style.display = 'none';
         }
 
         function confirmClearData() {
@@ -1900,6 +2302,35 @@
         }
 
         function initializeApp() {
+            // Initialize jobs first
+            initializeJobs();
+            
+            // Migrate old shifts format (from v0.2.5 and earlier)
+            const oldShifts = localStorage.getItem('shifts');
+            if (oldShifts) {
+                try {
+                    const parsedOldShifts = JSON.parse(oldShifts);
+                    if (Array.isArray(parsedOldShifts) && parsedOldShifts.length > 0) {
+                        // Move old shifts to current job
+                        const jobKey = 'shifts_' + currentJobId;
+                        const existingShifts = localStorage.getItem(jobKey);
+                        let allShifts = parsedOldShifts;
+                        
+                        if (existingShifts) {
+                            // Merge with existing shifts
+                            const existing = JSON.parse(existingShifts);
+                            allShifts = [...parsedOldShifts, ...existing];
+                        }
+                        
+                        localStorage.setItem(jobKey, JSON.stringify(allShifts));
+                        localStorage.removeItem('shifts'); // Delete old key
+                        console.log('Migrated ' + parsedOldShifts.length + ' old shifts to current job');
+                    }
+                } catch (e) {
+                    console.error('Error migrating old shifts:', e);
+                }
+            }
+
             // Load dark mode preference
             const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
             if (darkModeEnabled) {
@@ -1915,7 +2346,28 @@
                 }
             }
 
-            const stored = localStorage.getItem('tipsTrackerData');
+            // Load job settings BEFORE using minWage or enable125
+            const jobMinWage = getJobSetting('minWage', currentJobId);
+            const jobEnable125 = getJobSetting('enable125', currentJobId);
+            
+            if (jobMinWage !== null && jobMinWage !== undefined) {
+                minWage = jobMinWage;
+            } else {
+                // Set default if not exists
+                setJobSetting('minWage', 31.50, currentJobId);
+                minWage = 31.50;
+            }
+            
+            if (jobEnable125 !== null && jobEnable125 !== undefined) {
+                enable125 = jobEnable125;
+            } else {
+                // Set default if not exists
+                setJobSetting('enable125', true, currentJobId);
+                enable125 = true;
+            }
+
+            const key = 'shifts_' + currentJobId;
+            const stored = localStorage.getItem(key);
             if (stored) {
                 try {
                     shifts = JSON.parse(stored);
@@ -1924,10 +2376,16 @@
                     shifts = [];
                 }
             }
-            document.getElementById('minWageDisplay').textContent = minWage.toFixed(2);
+            
+            // Ensure minWage is a number before using toFixed
+            if (typeof minWage === 'number') {
+                document.getElementById('minWageDisplay').textContent = minWage.toFixed(2);
+            } else {
+                minWage = 31.50;
+                document.getElementById('minWageDisplay').textContent = '31.50';
+            }
             
             // Load 125% rule setting
-            const enable125 = localStorage.getItem('enable125Rule') !== 'false';
             document.getElementById('enable125Rule').checked = enable125;
             
             // Initialize language display
@@ -1938,11 +2396,13 @@
             renderShifts();
             renderArchive();
             updateStats();
+            updateSidePanelJobName();
         }
 
         function saveToLocalStorage() {
             try {
-                localStorage.setItem('tipsTrackerData', JSON.stringify(shifts));
+                const key = 'shifts_' + currentJobId;
+                localStorage.setItem(key, JSON.stringify(shifts));
             } catch (e) {
                 if (e.name === 'QuotaExceededError') {
                     alert('Storage limit exceeded. Please export and clear old data.');
@@ -2085,10 +2545,12 @@
         }
 
         function fmt(num, decimals = 2) {
+            if (num === undefined || num === null) return '0.00';
             return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         }
 
         function fmt0(num) {
+            if (num === undefined || num === null) return '0';
             return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
         }
 
@@ -2119,11 +2581,16 @@
         }
 
         function renderShifts() {
+            // Ensure minWage is always defined
+            if (typeof minWage !== 'number' || minWage < 0) {
+                minWage = 31.50;
+            }
+            
             document.body.style.overflow = 'hidden';
             const list = document.getElementById('shiftsList');
             if (shifts.length === 0) {
                 list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>${t('noShiftsYet')}</p></div>`;
-                document.getElementById('headerSubtitle').textContent = '0 shifts this week | 0 shifts this month';
+                updateHeaderSubtitle(0, 0);
                 return;
             }
 
@@ -2143,7 +2610,7 @@
 
             if (currentMonthShifts.length === 0) {
                 list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>${t('noShiftsThisMonth')}</p></div>`;
-                document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week | 0 shifts this month`;
+                updateHeaderSubtitle(weekShifts.length, 0);
                 return;
             }
 
@@ -2153,7 +2620,7 @@
             });
 
             // Update header subtitle
-            document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week | ${currentMonthShifts.length} shifts this month`;
+            updateHeaderSubtitle(weekShifts.length, currentMonthShifts.length);
 
             // Build HTML for current month only
             let html = '';
@@ -2180,10 +2647,19 @@
                                 </div>
                             </div>
                             <div style="text-align: right; margin-left: 12px;">
-                                <div class="shift-income">₪${fmt(shift.total)}</div>
-                                <div style="font-size: 11px; font-weight: 600; color: ${deltaColor}; margin-top: 2px;">
-                                    ${deltaSign}₪${fmt(Math.abs(calc.delta))}
-                                </div>
+                                <div class="shift-income">₪${fmt(getDisplayEarnings(shift, calc))}</div>
+                                ${(() => {
+                                    const structure = getJobPaymentStructure();
+                                    if (structure === 'tipsOnly') {
+                                        // Only show delta for tips-only mode
+                                        const deltaSign = calc.delta >= 0 ? '+' : '';
+                                        const deltaColor = calc.delta >= 0 ? '#28a745' : '#ff6b6b';
+                                        return `<div style="font-size: 11px; font-weight: 600; color: ${deltaColor}; margin-top: 2px;">
+                                            ${deltaSign}₪${fmt(Math.abs(calc.delta))}
+                                        </div>`;
+                                    }
+                                    return '';
+                                })()}
                                 <div style="font-size: 11px; color: #667EEA; font-weight: 600; margin-top: 2px;">
                                     ₪${fmt(calc.hourlyAverage)}${currentLanguage === 'he' ? '/ש' : '/h'}
                                 </div>
@@ -2191,16 +2667,26 @@
                         </div>
                         <div style="margin-top: 6px; font-size: 11px; color: var(--text-tertiary);">
                             ${(() => {
-                                const enable125 = localStorage.getItem('enable125Rule') !== 'false';
-                                if (!enable125) {
-                                    return `${fmt(calc.hours, 1)}h @ ₪${fmt(minWage)}`;
-                                }
-                                if (calc.hours <= 8) {
-                                    return `${fmt(calc.hours, 1)}h @ ₪${fmt(minWage)}`;
-                                } else if (calc.hours <= 10) {
-                                    return `8h @ ₪${fmt(minWage)} + ${fmt(calc.hours - 8, 1)}h @ ₪${fmt(minWage * 1.25)}`;
+                                const structure = getJobPaymentStructure();
+                                if (structure === 'minWageTips') {
+                                    return `Wage: ₪${fmt(calc.minRequired)}`;
                                 } else {
-                                    return `8h @ ₪${fmt(minWage)} + 2h @ ₪${fmt(minWage * 1.25)} + ${fmt(calc.hours - 10, 1)}h @ ₪${fmt(minWage * 1.5)}`;
+                                    // Tips only mode - show breakdown
+                                    if (!enable125) {
+                                        return `${fmt(calc.hours, 1)}h @ ₪${fmt(minWage)} = ₪${fmt(calc.hours * minWage)}`;
+                                    }
+                                    if (calc.hours <= 8) {
+                                        return `${fmt(calc.hours, 1)}h @ ₪${fmt(minWage)} = ₪${fmt(calc.hours * minWage)}`;
+                                    } else if (calc.hours <= 10) {
+                                        const part1 = 8 * minWage;
+                                        const part2 = (calc.hours - 8) * (minWage * 1.25);
+                                        return `8h @ ₪${fmt(minWage)} + ${fmt(calc.hours - 8, 1)}h @ ₪${fmt(minWage * 1.25)} = ₪${fmt(part1 + part2)}`;
+                                    } else {
+                                        const part1 = 8 * minWage;
+                                        const part2 = 2 * (minWage * 1.25);
+                                        const part3 = (calc.hours - 10) * (minWage * 1.5);
+                                        return `8h @ ₪${fmt(minWage)} + 2h @ ₪${fmt(minWage * 1.25)} + ${fmt(calc.hours - 10, 1)}h @ ₪${fmt(minWage * 1.5)} = ₪${fmt(part1 + part2 + part3)}`;
+                                    }
                                 }
                             })()}
                         </div>
@@ -2215,6 +2701,11 @@
         }
 
         function renderArchive() {
+            // Ensure minWage is always defined
+            if (typeof minWage !== 'number' || minWage < 0) {
+                minWage = 31.50;
+            }
+            
             const list = document.getElementById('archiveList');
             
             // Group all shifts by month
@@ -2401,25 +2892,41 @@
                                 </div>
                                 <div style="font-size: 11px; color: #999; margin-top: 6px;">
                                     ${(() => {
-                                        const enable125 = localStorage.getItem('enable125Rule') !== 'false';
-                                        if (!enable125) {
-                                            return `${calc.hours.toFixed(1)}h @ ₪${minWage.toFixed(2)}`;
-                                        }
-                                        if (calc.hours <= 8) {
-                                            return `${calc.hours.toFixed(1)}h @ ₪${minWage.toFixed(2)}`;
-                                        } else if (calc.hours <= 10) {
-                                            return `8h @ ₪${minWage.toFixed(2)} + ${(calc.hours - 8).toFixed(1)}h @ ₪${(minWage * 1.25).toFixed(2)}`;
+                                        const structure = getJobPaymentStructure();
+                                        if (structure === 'minWageTips') {
+                                            return `Wage: ₪${calc.minRequired.toFixed(2)}`;
                                         } else {
-                                            return `8h @ ₪${minWage.toFixed(2)} + 2h @ ₪${(minWage * 1.25).toFixed(2)} + ${(calc.hours - 10).toFixed(1)}h @ ₪${(minWage * 1.5).toFixed(2)}`;
+                                            // Tips only mode - show breakdown
+                                            if (!enable125) {
+                                                return `${calc.hours.toFixed(1)}h @ ₪${minWage.toFixed(2)} = ₪${(calc.hours * minWage).toFixed(2)}`;
+                                            }
+                                            if (calc.hours <= 8) {
+                                                return `${calc.hours.toFixed(1)}h @ ₪${minWage.toFixed(2)} = ₪${(calc.hours * minWage).toFixed(2)}`;
+                                            } else if (calc.hours <= 10) {
+                                                const part1 = 8 * minWage;
+                                                const part2 = (calc.hours - 8) * (minWage * 1.25);
+                                                return `8h @ ₪${minWage.toFixed(2)} + ${(calc.hours - 8).toFixed(1)}h @ ₪${(minWage * 1.25).toFixed(2)} = ₪${(part1 + part2).toFixed(2)}`;
+                                            } else {
+                                                const part1 = 8 * minWage;
+                                                const part2 = 2 * (minWage * 1.25);
+                                                const part3 = (calc.hours - 10) * (minWage * 1.5);
+                                                return `8h @ ₪${minWage.toFixed(2)} + 2h @ ₪${(minWage * 1.25).toFixed(2)} + ${(calc.hours - 10).toFixed(1)}h @ ₪${(minWage * 1.5).toFixed(2)} = ₪${(part1 + part2 + part3).toFixed(2)}`;
+                                            }
                                         }
                                     })()}
                                 </div>
                             </div>
                             <div style="text-align: right;">
-                                <div class="shift-income">₪${shift.total.toFixed(2)}</div>
-                                <div style="font-size: 12px; font-weight: 600; color: ${deltaColor}; margin-top: 4px;">
-                                    ${calc.isGap ? '-' : '+'}₪${Math.abs(calc.delta).toFixed(2)}
-                                </div>
+                                <div class="shift-income">₪${getDisplayEarnings(shift, calc).toFixed(2)}</div>
+                                ${(() => {
+                                    const structure = getJobPaymentStructure();
+                                    if (structure === 'tipsOnly') {
+                                        return `<div style="font-size: 12px; font-weight: 600; color: ${calc.delta >= 0 ? '#28a745' : '#ff6b6b'}; margin-top: 4px;">
+                                            ${calc.delta >= 0 ? '+' : '-'}₪${Math.abs(calc.delta).toFixed(2)}
+                                        </div>`;
+                                    }
+                                    return '';
+                                })()}
                             </div>
                         </div>
                         ${shift.notes ? `<div style="margin-top: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 6px; font-size: 12px; color: var(--text-secondary); border-left: 2px solid #FF6B9D; line-height: 1.4;">📝 ${shift.notes}</div>` : ''}
@@ -2445,6 +2952,87 @@
                 overlay.classList.remove('active');
                 overlay.classList.remove('closing');
             }, 300);
+        }
+
+        function showChangelog() {
+            const overlay = document.getElementById('changelogOverlay');
+            overlay.style.display = 'flex';
+            fetchChangelog();
+        }
+
+        function closeChangelog() {
+            const overlay = document.getElementById('changelogOverlay');
+            overlay.style.display = 'none';
+        }
+
+        function fetchChangelog() {
+            const contentDiv = document.getElementById('changelogContent');
+            
+            // Embedded changelog - works offline without network
+            const changelogHTML = `
+                <h1 style="color: #667EEA; font-size: 20px; margin-bottom: 20px;">Lillytip Changelog</h1>
+                
+                <h2 style="color: #667EEA; font-size: 16px; margin-top: 20px; margin-bottom: 12px;">[0.3.1] - 2026-05-28</h2>
+                
+                <h3 style="color: #FF6B9D; font-size: 14px; font-weight: 600; margin-top: 12px;">Fixed</h3>
+                <div style="margin-left: 16px; color: var(--text-secondary);">
+                    <div>• 🔧 Migration Bug - Preserve shifts from old backups when upgrading</div>
+                    <div>• 💾 Export/Import - All shifts now properly exported from all profiles</div>
+                </div>
+                
+                <h2 style="color: #667EEA; font-size: 16px; margin-top: 20px; margin-bottom: 12px;">[0.3.0] - 2026-05-28</h2>
+                
+                <h3 style="color: #FF6B9D; font-size: 14px; font-weight: 600; margin-top: 12px;">Added</h3>
+                <div style="margin-left: 16px; color: var(--text-secondary);">
+                    <div>• 💼 Per-Job Settings System</div>
+                    <div>• 💳 Payment Method Selection (Min Wage + Tips / Tips Only)</div>
+                    <div>• 📖 Changelog Viewer</div>
+                    <div>• 📊 Improved Earnings Display</div>
+                </div>
+                
+                <h3 style="color: #FF6B9D; font-size: 14px; font-weight: 600; margin-top: 12px;">Fixed</h3>
+                <div style="margin-left: 16px; color: var(--text-secondary);">
+                    <div>• 🔧 125% Rule Breakdown - Exact math displayed</div>
+                    <div>• 📈 Hourly Average Math - Correct calculations</div>
+                    <div>• 🎯 Settings Persistence - Proper per-job loading</div>
+                    <div>• 💾 Data Migration - Backward compatible</div>
+                </div>
+                
+                <h3 style="color: #FF6B9D; font-size: 14px; font-weight: 600; margin-top: 12px;">Changed</h3>
+                <div style="margin-left: 16px; color: var(--text-secondary);">
+                    <div>• 🏷️ Job Switching Behavior - Tab stays same</div>
+                    <div>• 🎨 Status Display - Context-appropriate info</div>
+                    <div>• ⚙️ Settings Tab - Payment method now required</div>
+                </div>
+                
+                <h3 style="color: #FF6B9D; font-size: 14px; font-weight: 600; margin-top: 12px;">UI Improvements</h3>
+                <div style="margin-left: 16px; color: var(--text-secondary);">
+                    <div>• 📱 Modal Design - Centered with visible borders</div>
+                    <div>• 🎯 Color Consistency - Green/Red status boxes</div>
+                    <div>• 🔤 Text Clarity - Better visual hierarchy</div>
+                </div>
+                
+                <h2 style="color: #667EEA; font-size: 16px; margin-top: 20px; margin-bottom: 12px;">[0.2.6] - 2026-05-24</h2>
+                <div style="margin-left: 16px; color: var(--text-secondary);">
+                    <div>• 🎬 Side Panel Animations</div>
+                    <div>• 👆 Swipe Gestures</div>
+                    <div>• 🔒 Mobile Scroll Lock</div>
+                    <div>• 🌐 Hebrew Translation Improvements</div>
+                </div>
+                
+                <h2 style="color: #667EEA; font-size: 16px; margin-top: 20px; margin-bottom: 12px;">[0.2.5] - 2025-05-23</h2>
+                <div style="margin-left: 16px; color: var(--text-secondary);">
+                    <div>• 📝 Shift Notes Feature</div>
+                    <div>• 🌐 Complete Hebrew Translation System</div>
+                    <div>• 🎯 Menu Active States</div>
+                </div>
+                
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-tertiary); text-align: center;">
+                    Current Version: v0.3.1
+                </div>
+            `;
+            
+            contentDiv.innerHTML = changelogHTML;
         }
 
         function viewShiftDetails(shiftId) {
@@ -2490,7 +3078,6 @@
                         </div>
                         <div style="font-size: 13px; color: ${secondaryColor}; line-height: 1.6;">
                             ${(() => {
-                                const enable125 = localStorage.getItem('enable125Rule') !== 'false';
                                 if (!enable125) {
                                     return `${calc.hours.toFixed(2)}h @ ₪${minWage.toFixed(2)}/h = ₪${(calc.hours * minWage).toFixed(2)}`;
                                 }
@@ -2525,16 +3112,73 @@
                         </div>
                     </div>
 
-                    <div style="padding: 16px; background: ${calc.isGap ? (isDarkMode ? '#2a1818' : '#fff5f5') : (isDarkMode ? '#182a18' : '#f5fff5')}; border-radius: 12px; border-left: 3px solid ${deltaColor};">
-                        <div style="font-size: 12px; color: ${deltaColor}; font-weight: 600; margin-bottom: 8px;">${t('minWageStatusLabel')}</div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: ${secondaryColor};">${t('minRequiredLabel')}</span>
-                            <span style="font-weight: 600; color: ${textColor};">₪${calc.minRequired.toFixed(2)}</span>
+                    <div style="padding: 16px; background: ${(() => {
+                        const structure = getJobPaymentStructure();
+                        if (structure === 'minWageTips') {
+                            return isDarkMode ? '#182a18' : '#f5fff5';
+                        } else {
+                            return calc.isGap ? (isDarkMode ? '#2a1818' : '#fff5f5') : (isDarkMode ? '#182a18' : '#f5fff5');
+                        }
+                    })()}; border-radius: 12px; border-left: 3px solid ${(() => {
+                        const structure = getJobPaymentStructure();
+                        if (structure === 'minWageTips') {
+                            return '#28a745';
+                        } else {
+                            return calc.isGap ? '#ff6b6b' : '#28a745';
+                        }
+                    })()};">
+                        <div style="font-size: 12px; color: ${(() => {
+                            const structure = getJobPaymentStructure();
+                            if (structure === 'minWageTips') {
+                                return '#28a745';
+                            } else {
+                                return calc.isGap ? '#ff6b6b' : '#28a745';
+                            }
+                        })()}; font-weight: 600; margin-bottom: 12px;">
+                            ${(() => {
+                                const structure = getJobPaymentStructure();
+                                if (structure === 'minWageTips') {
+                                    return 'Income Breakdown';
+                                } else {
+                                    return t('minWageStatusLabel');
+                                }
+                            })()}
                         </div>
-                        <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid ${deltaColor}40;">
-                            <span style="color: ${deltaColor}; font-weight: 600;">${deltaLabel}:</span>
-                            <span style="font-size: 18px; font-weight: 700; color: ${deltaColor};">${calc.isGap ? '-' : '+'}₪${Math.abs(calc.delta).toFixed(2)}</span>
-                        </div>
+                        
+                        ${(() => {
+                            const structure = getJobPaymentStructure();
+                            if (structure === 'minWageTips') {
+                                // Wage + Tips mode - show breakdown
+                                return `
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="color: ${secondaryColor};">Wage (Base):</span>
+                                        <span style="font-weight: 600; color: ${textColor};">₪${calc.minRequired.toFixed(2)}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="color: ${secondaryColor};">Tips Earned:</span>
+                                        <span style="font-weight: 600; color: ${textColor};">₪${shift.total.toFixed(2)}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #28a74540;">
+                                        <span style="color: #28a745; font-weight: 600;">Total:</span>
+                                        <span style="font-size: 18px; font-weight: 700; color: #28a745;">₪${(calc.minRequired + shift.total).toFixed(2)}</span>
+                                    </div>
+                                `;
+                            } else {
+                                // Tips Only mode - show gap
+                                const deltaColor = calc.isGap ? '#ff6b6b' : '#28a745';
+                                const deltaLabel = calc.isGap ? t('gapRestaurantPays') : t('surplus');
+                                return `
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="color: ${secondaryColor};">${t('minRequiredLabel')}</span>
+                                        <span style="font-weight: 600; color: ${textColor};">₪${calc.minRequired.toFixed(2)}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid ${deltaColor}40;">
+                                        <span style="color: ${deltaColor}; font-weight: 600;">${deltaLabel}:</span>
+                                        <span style="font-size: 18px; font-weight: 700; color: ${deltaColor};">${calc.isGap ? '-' : '+'}₪${Math.abs(calc.delta).toFixed(2)}</span>
+                                    </div>
+                                `;
+                            }
+                        })()}
                     </div>
                 </div>
 
@@ -2617,6 +3261,11 @@
         }
 
         function updateStats() {
+            // Ensure minWage is always defined
+            if (typeof minWage !== 'number' || minWage < 0) {
+                minWage = 31.50;
+            }
+            
             const now = new Date();
             const currentMonthKey = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
             const isDarkMode = document.body.classList.contains('dark-mode');
@@ -2918,6 +3567,426 @@
             }
         }
 
+        // Job Management
+        function initializeJobs() {
+            const savedJobs = localStorage.getItem('jobs');
+            if (savedJobs) {
+                jobs = JSON.parse(savedJobs);
+                // Ensure all jobs have proper settings structure
+                jobs = jobs.map(job => {
+                    if (!job.settings) {
+                        job.settings = {};
+                    }
+                    // Migrate paymentStructure from top level to settings
+                    if (job.paymentStructure && !job.settings.paymentStructure) {
+                        job.settings.paymentStructure = job.paymentStructure;
+                        delete job.paymentStructure;
+                    }
+                    // Ensure all required settings exist
+                    if (!job.settings.minWage) {
+                        job.settings.minWage = 31.50;
+                    }
+                    if (job.settings.enable125 === undefined) {
+                        job.settings.enable125 = true;
+                    }
+                    if (!job.settings.paymentStructure) {
+                        job.settings.paymentStructure = 'tipsOnly';
+                    }
+                    return job;
+                });
+                saveJobs();
+            } else {
+                // Create default job if none exist
+                jobs = [{ 
+                    id: 'job_' + Date.now(), 
+                    name: 'My First Job',
+                    settings: {
+                        minWage: 31.50,
+                        enable125: true,
+                        paymentStructure: 'tipsOnly'
+                    }
+                }];
+                saveJobs();
+            }
+            currentJobId = localStorage.getItem('currentJobId') || jobs[0].id;
+            saveCurrentJobId();
+        }
+
+        function getJobSetting(key, jobId = currentJobId) {
+            const job = jobs.find(j => j.id === jobId);
+            if (!job || !job.settings) return null;
+            return job.settings[key];
+        }
+
+        function setJobSetting(key, value, jobId = currentJobId) {
+            const job = jobs.find(j => j.id === jobId);
+            if (job) {
+                if (!job.settings) job.settings = {};
+                job.settings[key] = value;
+                saveJobs();
+            }
+        }
+
+        function saveJobs() {
+            localStorage.setItem('jobs', JSON.stringify(jobs));
+        }
+
+        function saveCurrentJobId() {
+            localStorage.setItem('currentJobId', currentJobId);
+        }
+
+        function openJobsPanel() {
+            document.getElementById('jobsPanel').classList.add('active');
+            renderJobsList();
+        }
+
+        function closeJobsPanel() {
+            document.getElementById('jobsPanel').classList.remove('active');
+            // Make sure side panel content is still visible
+            document.getElementById('sidePanel').style.display = 'flex';
+        }
+
+        function renderJobsList() {
+            const jobsList = document.getElementById('jobsList');
+            jobsList.innerHTML = jobs.map(job => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" onclick="switchJob('${job.id}')">
+                        <span style="color: var(--text-primary); font-weight: ${job.id === currentJobId ? '600' : '500'};">${job.name}</span>
+                        ${job.id === currentJobId ? '<span style="color: #28a745; font-weight: 700;">✓</span>' : ''}
+                    </div>
+                    <div style="position: relative;">
+                        <button onclick="toggleJobMenu('${job.id}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px; padding: 4px 8px;">⋮</button>
+                        <div id="menu_${job.id}" style="display: none; position: absolute; right: 0; top: 100%; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; min-width: 140px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1000;">
+                            <button onclick="startEditJobName('${job.id}'); closeAllJobMenus();" style="display: block; width: 100%; padding: 10px 16px; background: none; border: none; color: var(--text-primary); text-align: left; cursor: pointer; font-size: 14px; border-bottom: 1px solid var(--border-color);">Edit</button>
+                            <button onclick="confirmDeleteJob('${job.id}'); closeAllJobMenus();" style="display: block; width: 100%; padding: 10px 16px; background: none; border: none; color: #ff6b6b; text-align: left; cursor: pointer; font-size: 14px;">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleJobMenu(jobId) {
+            const menu = document.getElementById('menu_' + jobId);
+            closeAllJobMenus();
+            if (menu) {
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function closeAllJobMenus() {
+            jobs.forEach(job => {
+                const menu = document.getElementById('menu_' + job.id);
+                if (menu) menu.style.display = 'none';
+            });
+        }
+
+        function switchJob(jobId) {
+            currentJobId = jobId;
+            saveCurrentJobId();
+            
+            // Load job settings - ensure they always have values
+            const jobMinWage = getJobSetting('minWage', jobId);
+            const jobEnable125 = getJobSetting('enable125', jobId);
+            
+            // Set global variables with defaults
+            minWage = (jobMinWage !== null && jobMinWage !== undefined && jobMinWage > 0) ? jobMinWage : 31.50;
+            enable125 = (jobEnable125 !== null && jobEnable125 !== undefined) ? jobEnable125 : true;
+            
+            // Ensure these are saved if not present
+            if (jobMinWage === null) setJobSetting('minWage', minWage, jobId);
+            if (jobEnable125 === null) setJobSetting('enable125', enable125, jobId);
+            
+            // Load shifts for this job from localStorage
+            const key = 'shifts_' + currentJobId;
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                try {
+                    shifts = JSON.parse(stored);
+                } catch (e) {
+                    shifts = [];
+                }
+            } else {
+                shifts = [];
+            }
+            
+            renderJobsList();
+            updateSidePanelJobName();
+            updateSettingsUIForCurrentJob();
+            
+            // Always update all data for the new job
+            renderShifts();
+            renderArchive();
+            updateStats();
+            
+            // Re-render current tab to show in viewport (don't switch tabs)
+            if (currentTab !== 'shifts' && currentTab !== 'archive' && currentTab !== 'stats') {
+                // If in settings or weather, nothing to re-render (they handle themselves)
+            }
+            
+            closeJobsPanel();
+        }
+
+        function openCreateJobModal() {
+            const jobName = document.getElementById('newJobNameInput');
+            jobName.value = '';
+            document.getElementById('createJobModalOverlay').style.display = 'flex';
+            jobName.focus();
+        }
+
+        let editingJobId = null; // Track which job is being edited
+
+        function openCreateJobModal() {
+            editingJobId = null;
+            document.getElementById('jobNameInput').value = '';
+            document.getElementById('jobModalTitle').textContent = 'New Job';
+            document.getElementById('jobModalBtn').textContent = 'Create';
+            document.getElementById('createJobModalOverlay').style.display = 'flex';
+            setTimeout(() => document.getElementById('jobNameInput').focus(), 100);
+        }
+
+        function closeCreateJobModal() {
+            document.getElementById('createJobModalOverlay').style.display = 'none';
+            editingJobId = null;
+        }
+
+        function submitJobModal() {
+            const jobName = document.getElementById('jobNameInput').value.trim();
+            if (!jobName) {
+                alert('Please enter a job name');
+                return;
+            }
+
+            if (editingJobId) {
+                // Edit mode
+                const job = jobs.find(j => j.id === editingJobId);
+                if (job) {
+                    job.name = jobName;
+                    saveJobs();
+                    renderJobsList();
+                    updateSidePanelJobName();
+                }
+            } else {
+                // Create mode
+                createJob(jobName);
+            }
+            closeCreateJobModal();
+        }
+
+        function startEditJobName(jobId) {
+            editingJobId = jobId;
+            const job = jobs.find(j => j.id === jobId);
+            if (job) {
+                document.getElementById('jobNameInput').value = job.name;
+                document.getElementById('jobModalTitle').textContent = 'Edit Job';
+                document.getElementById('jobModalBtn').textContent = 'Save';
+                document.getElementById('createJobModalOverlay').style.display = 'flex';
+                setTimeout(() => document.getElementById('jobNameInput').focus(), 100);
+            }
+        }
+
+        let jobToDelete = null; // Track which job is being deleted
+
+        function confirmDeleteJob(jobId) {
+            console.log('confirmDeleteJob called with jobId:', jobId);
+            const job = jobs.find(j => j.id === jobId);
+            console.log('Found job:', job);
+            if (!job) {
+                console.log('Job not found!');
+                return;
+            }
+
+            jobToDelete = jobId;
+            document.getElementById('deleteConfirmMsg').textContent = `Are you sure you want to delete "${job.name}"? This job has ${localStorage.getItem('shifts_' + jobId) ? 'shifts' : 'no shifts'} associated with it.`;
+            document.getElementById('deleteConfirmOverlay').style.display = 'flex';
+        }
+
+        function closeDeleteConfirm() {
+            document.getElementById('deleteConfirmOverlay').style.display = 'none';
+            // DO NOT reset jobToDelete here - we need it for the second modal!
+        }
+
+        function proceedDeleteJob() {
+            console.log('proceedDeleteJob called, jobToDelete:', jobToDelete);
+            if (!jobToDelete) {
+                console.log('ERROR: jobToDelete is null!');
+                return;
+            }
+            const job = jobs.find(j => j.id === jobToDelete);
+            console.log('Job to confirm delete:', job);
+            if (!job) {
+                console.log('ERROR: Job not found!');
+                return;
+            }
+
+            closeDeleteConfirm();
+            console.log('Setting up final delete modal');
+            document.getElementById('deleteFinalMsg').textContent = `This action cannot be undone. Delete "${job.name}" permanently?`;
+            document.getElementById('deleteFinalOverlay').style.display = 'flex';
+            console.log('Final delete modal displayed');
+        }
+
+        function closeFinalDelete() {
+            console.log('closeFinalDelete called');
+            document.getElementById('deleteFinalOverlay').style.display = 'none';
+            jobToDelete = null;
+        }
+
+        function finalizeDeleteJob() {
+            console.log('finalizeDeleteJob called, jobToDelete:', jobToDelete);
+            if (!jobToDelete) {
+                console.log('ERROR: jobToDelete is null in finalizeDeleteJob!');
+                return;
+            }
+            console.log('About to call deleteJob with jobId:', jobToDelete);
+            deleteJob(jobToDelete);
+            console.log('deleteJob completed');
+            closeFinalDelete();
+            // Close the jobs panel to refresh and show updated list
+            closeJobsPanel();
+            // Re-open it to show the refreshed list
+            setTimeout(() => {
+                openJobsPanel();
+            }, 300);
+        }
+
+        function deleteJob(jobId) {
+            console.log('===== deleteJob START =====');
+            console.log('deleteJob called with jobId:', jobId);
+            console.log('Jobs before delete:', JSON.stringify(jobs));
+            
+            // Remove the job
+            const beforeLength = jobs.length;
+            jobs = jobs.filter(j => j.id !== jobId);
+            console.log('Jobs after filter:', JSON.stringify(jobs));
+            console.log('Removed:', beforeLength - jobs.length, 'job(s)');
+            
+            // Remove associated shifts
+            console.log('Removing shifts for:', jobId);
+            localStorage.removeItem('shifts_' + jobId);
+            
+            // Save updated jobs list
+            console.log('Calling saveJobs()');
+            saveJobs();
+            console.log('saveJobs() completed');
+            console.log('localStorage jobs:', localStorage.getItem('jobs'));
+
+            // If deleted job was current, switch to first available job or create default
+            if (currentJobId === jobId) {
+                console.log('Deleted job was current job, switching...');
+                if (jobs.length > 0) {
+                    console.log('Switching to job:', jobs[0].id);
+                    switchJob(jobs[0].id);
+                } else {
+                    console.log('No jobs left, creating default');
+                    createJob('My First Job');
+                }
+            } else {
+                console.log('Deleted job was not current job, refreshing UI...');
+                renderJobsList();
+                updateSidePanelJobName();
+                renderShifts();
+                renderArchive();
+                updateStats();
+            }
+            console.log('===== deleteJob END =====');
+        }
+
+        function submitNewJob() {
+            submitJobModal();
+        }
+
+        function createJob(name) {
+            const newJob = {
+                id: 'job_' + Date.now(),
+                name: name,
+                settings: {
+                    minWage: minWage,
+                    enable125: enable125,
+                    paymentStructure: 'tipsOnly'
+                }
+            };
+            jobs.push(newJob);
+            saveJobs();
+            switchJob(newJob.id);
+            renderJobsList();
+        }
+
+        function getJobPaymentStructure(jobId = currentJobId) {
+            const structure = getJobSetting('paymentStructure', jobId);
+            return structure || 'tipsOnly';
+        }
+
+        function setJobPaymentStructure(jobId, structure) {
+            const job = jobs.find(j => j.id === jobId);
+            if (job) {
+                job.paymentStructure = structure;
+                saveJobs();
+                // Refresh UI if this is the current job
+                if (jobId === currentJobId) {
+                    updateStats();
+                    renderShifts();
+                }
+            }
+        }
+
+        function switchTabKeepMenuOpen(tab) {
+            // Switch tab without closing menu
+            switchTab(tab);
+            closeJobsPanel(); // Only close jobs panel
+        }
+
+        function getCurrentJobName() {
+            const job = jobs.find(j => j.id === currentJobId);
+            return job ? job.name : 'Job';
+        }
+
+        function updateHeaderSubtitle(weekCount, monthCount) {
+            document.getElementById('headerSubtitle').textContent = `${weekCount} shifts this week | ${monthCount} shifts this month`;
+        }
+
+        function updateSidePanelJobName() {
+            const jobName = getCurrentJobName();
+            const element = document.getElementById('sidePanelJobName');
+            if (element) {
+                element.textContent = jobName;
+            }
+            // Also update header job name display
+            const jobNameDisplay = document.getElementById('jobNameDisplay');
+            if (jobNameDisplay) {
+                jobNameDisplay.textContent = jobName;
+            }
+        }
+
+        function updateSettingsUIForCurrentJob() {
+            // Ensure minWage is valid
+            if (typeof minWage !== 'number' || minWage < 0) {
+                minWage = 31.50;
+            }
+            if (typeof enable125 !== 'boolean') {
+                enable125 = true;
+            }
+            
+            // Update minimum wage display and input
+            const minWageDisplay = document.getElementById('minWageDisplay');
+            if (minWageDisplay) {
+                minWageDisplay.textContent = minWage.toFixed(2);
+            }
+            const minWageInput = document.getElementById('minWageInput');
+            if (minWageInput) {
+                minWageInput.placeholder = `Minimum wage: ${minWage.toFixed(2)}`;
+                minWageInput.value = '';
+            }
+            
+            // Update 125% rule checkbox
+            const enable125Rule = document.getElementById('enable125Rule');
+            if (enable125Rule) {
+                enable125Rule.checked = enable125;
+            }
+            
+            // Update payment structure buttons
+            updatePaymentStructureUI();
+        }
+
         function menuSwitchTab(tab) {
             switchTab(tab);
             document.querySelectorAll('.side-menu-item').forEach(btn => btn.classList.remove('active-menu'));
@@ -2950,6 +4019,12 @@
             document.getElementById('weatherView').style.display = tab === 'weather' ? 'block' : 'none';
             document.getElementById('settingsView').style.display = 'none';
             
+            // Update menu indicator
+            document.querySelectorAll('.side-menu-item').forEach(btn => btn.classList.remove('active-menu'));
+            const activeBtn = document.querySelector(`[onclick="menuSwitchTab('${tab}')"]`);
+            if (activeBtn) activeBtn.classList.add('active-menu');
+            document.getElementById('menuSettings').classList.remove('active-menu');
+            
             const btnAdd = document.querySelector('.btn-add');
             if (tab === 'stats' || tab === 'weather') {
                 btnAdd.classList.add('hidden');
@@ -2972,6 +4047,8 @@
                 document.getElementById('weatherView').style.display = 'none';
                 settingsView.style.display = 'block';
                 btnAdd.classList.add('hidden');
+                // Ensure payment structure UI shows current selection
+                updatePaymentStructureUI();
             } else if (shouldToggle) {
                 settingsView.style.display = 'none';
                 btnAdd.classList.remove('hidden');
@@ -3262,12 +4339,15 @@
             if (!location) return;
 
             fetch(
-                `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,uv_index_max,precipitation_probability_max&timezone=auto`
+                `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,uv_index_max,precipitation_probability_max,sunrise,sunset&timezone=auto`
             )
             .then(response => response.json())
             .then(data => {
                 const daily = data.daily;
                 const rainChance = daily.precipitation_probability_max[dayIndex] || 0;
+                const sunrise = daily.sunrise[dayIndex] ? new Date(daily.sunrise[dayIndex]).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : 'N/A';
+                const sunset = daily.sunset[dayIndex] ? new Date(daily.sunset[dayIndex]).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : 'N/A';
+                
                 const detailsHtml = `
                     <div style="padding: 16px; background: var(--card-bg); border-radius: 12px; margin-top: 16px; border-left: 3px solid #FF6B9D;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -3297,6 +4377,14 @@
                             <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
                                 <div style="font-size: 11px; color: var(--text-secondary);">🌧️ Rain Chance</div>
                                 <div style="font-size: 18px; font-weight: 600; color: ${rainChance > 50 ? '#FF6B9D' : 'var(--text-primary)'};">${rainChance}%</div>
+                            </div>
+                            <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary);">🌅 Sunrise</div>
+                                <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${sunrise}</div>
+                            </div>
+                            <div style="padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary);">🌇 Sunset</div>
+                                <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${sunset}</div>
                             </div>
                         </div>
                     </div>
