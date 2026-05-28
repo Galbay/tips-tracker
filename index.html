@@ -1182,7 +1182,7 @@
                 </button>
             </div>
             <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center;">
-                <span style="font-size: 11px; color: var(--text-tertiary); cursor: pointer; transition: color 0.2s;" onclick="showChangelog()" onmouseover="this.style.color='#FF6B9D'" onmouseout="this.style.color='var(--text-tertiary)'">v0.3.1</span>
+                <span style="font-size: 11px; color: var(--text-tertiary); cursor: pointer; transition: color 0.2s;" onclick="showChangelog()" onmouseover="this.style.color='#FF6B9D'" onmouseout="this.style.color='var(--text-tertiary)'">v0.3.2</span>
             </div>
         </div>
 
@@ -2124,7 +2124,7 @@
                     shifts: allShifts,
                     jobs: jobsList,
                     exportDate: new Date().toISOString(),
-                    version: 'v0.3.1'
+                    version: 'v0.3.2'
                 };
                 
                 const dataStr = JSON.stringify(backup, null, 2);
@@ -2304,32 +2304,6 @@
         function initializeApp() {
             // Initialize jobs first
             initializeJobs();
-            
-            // Migrate old shifts format (from v0.2.5 and earlier)
-            const oldShifts = localStorage.getItem('shifts');
-            if (oldShifts) {
-                try {
-                    const parsedOldShifts = JSON.parse(oldShifts);
-                    if (Array.isArray(parsedOldShifts) && parsedOldShifts.length > 0) {
-                        // Move old shifts to current job
-                        const jobKey = 'shifts_' + currentJobId;
-                        const existingShifts = localStorage.getItem(jobKey);
-                        let allShifts = parsedOldShifts;
-                        
-                        if (existingShifts) {
-                            // Merge with existing shifts
-                            const existing = JSON.parse(existingShifts);
-                            allShifts = [...parsedOldShifts, ...existing];
-                        }
-                        
-                        localStorage.setItem(jobKey, JSON.stringify(allShifts));
-                        localStorage.removeItem('shifts'); // Delete old key
-                        console.log('Migrated ' + parsedOldShifts.length + ' old shifts to current job');
-                    }
-                } catch (e) {
-                    console.error('Error migrating old shifts:', e);
-                }
-            }
 
             // Load dark mode preference
             const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
@@ -2972,6 +2946,14 @@
             const changelogHTML = `
                 <h1 style="color: #667EEA; font-size: 20px; margin-bottom: 20px;">Lillytip Changelog</h1>
                 
+                <h2 style="color: #667EEA; font-size: 16px; margin-top: 20px; margin-bottom: 12px;">[0.3.2] - 2026-05-28</h2>
+                
+                <h3 style="color: #FF6B9D; font-size: 14px; font-weight: 600; margin-top: 12px;">Fixed</h3>
+                <div style="margin-left: 16px; color: var(--text-secondary);">
+                    <div>• 🚨 CRITICAL - Removed auto-migration that caused data loss</div>
+                    <div>• 💾 Old v0.2.5 backups: Use Import feature instead</div>
+                </div>
+                
                 <h2 style="color: #667EEA; font-size: 16px; margin-top: 20px; margin-bottom: 12px;">[0.3.1] - 2026-05-28</h2>
                 
                 <h3 style="color: #FF6B9D; font-size: 14px; font-weight: 600; margin-top: 12px;">Fixed</h3>
@@ -3028,7 +3010,7 @@
                 </div>
                 
                 <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-tertiary); text-align: center;">
-                    Current Version: v0.3.1
+                    Current Version: v0.3.2
                 </div>
             `;
             
