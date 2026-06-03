@@ -1,0 +1,2492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FF6B9D">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Lillytip">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Track your waitress tips and earnings with overtime calculations">
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Lillytip%22,%22short_name%22:%22Lillytip%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%238a1a4c%22,%22theme_color%22:%22%23FF6B9D%22,%22orientation%22:%22portrait%22,%22scope%22:%22/%22,%22icons%22:[{%22src%22:%22lillytip-deep-magenta.svg%22,%22sizes%22:%22any%22,%22type%22:%22image/svg+xml%22}]}">
+    <title>Lillytip - Track Your Waitress Income</title>
+    
+    <!-- Favicons and App Icons -->
+    <link rel="icon" type="image/svg+xml" href="lillytip-deep-magenta.svg?v=1">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
+    <link rel="icon" type="image/png" href="android-chrome-192x192.png?v=1">
+    
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #E5E5E5;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --modal-overlay: rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --text-tertiary: #999999;
+            --border-color: #404040;
+            --card-bg: #242424;
+            --input-bg: #333333;
+            --modal-overlay: rgba(0,0,0,0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+            width: 100%;
+            overflow: visible;
+            position: relative;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: var(--bg-primary);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            padding-top: max(12px, env(safe-area-inset-top));
+        }
+
+        .phone-frame {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .notch {
+            display: none;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #FF6B9D 0%, #E84B8A 100%);
+            color: white;
+            padding: 16px;
+            padding-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            safe-area-inset-top: auto;
+        }
+
+        .app-header-left h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .app-header-left p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .header-btn:active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 16px;
+            padding-left: 0;
+            padding-right: 0;
+            padding-bottom: 0;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        .summary-cards {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            padding: 4px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        /* Hide scrollbar for Chrome, Safari, Edge */
+        .summary-cards::-webkit-scrollbar {
+            display: none;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #E5E5E5;
+            min-width: 140px;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667EEA;
+            margin-top: 8px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0 12px;
+            padding: 0 4px;
+        }
+
+        .month-section {
+            margin-bottom: 24px;
+        }
+
+        .month-header {
+            font-size: 14px;
+            font-weight: 700;
+            color: #667EEA;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 4px;
+            border-bottom: 2px solid #667EEA;
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .month-header:first-of-type {
+            margin-top: 0;
+        }
+
+        .archive-month-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #E5E5E5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .archive-month-card:active {
+            transform: scale(0.98);
+            border-color: #667EEA;
+            background: #F9F7FF;
+        }
+
+        .archive-month-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .archive-month-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .archive-stat {
+            background: #F9F7FF;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .archive-stat-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .archive-stat-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #667EEA;
+        }
+
+        .archive-total {
+            padding-top: 12px;
+            border-top: 1px solid #E5E5E5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .archive-total-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .archive-total-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .shift-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #E5E5E5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .shift-item:active {
+            transform: scale(0.98);
+            border-color: #667EEA;
+            background: #F9F7FF;
+        }
+
+        .shift-date {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        .shift-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 0;
+        }
+
+        .shift-breakdown {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 0;
+            margin-top: 2px;
+        }
+
+        .shift-income {
+            font-size: 16px;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .btn-add {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #FF6B9D 0%, #E84B8A 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-add.hidden {
+            display: none;
+        }
+
+        .btn-add:active {
+            transform: translateX(-50%) scale(0.9);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 20;
+            animation: fadeIn 0.3s ease;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        #deleteShiftModalOverlay {
+            z-index: 30 !important;
+            align-items: center !important;
+        }
+
+        #gapsListModalOverlay {
+            z-index: 25 !important;
+            align-items: center !important;
+        }
+
+        #clearModalOverlay {
+            align-items: center !important;
+        }
+
+        #modalOverlay {
+            z-index: 25 !important;
+        }
+
+        #deleteShiftModalOverlay .modal {
+            width: 90%;
+            max-width: 300px;
+            border-radius: 16px;
+            animation: none;
+            transform: scale(1);
+        }
+
+        #clearModalOverlay .modal {
+            width: 90%;
+            max-width: 300px;
+            border-radius: 16px;
+            animation: none;
+            transform: scale(1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal {
+            background: var(--card-bg);
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            padding: 20px;
+            animation: slideUp 0.3s ease;
+            max-height: 90%;
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-tertiary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-time {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus, .form-time:focus {
+            outline: none;
+            border-color: #667EEA;
+            background: var(--input-bg);
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .tip-breakdown {
+            background: #F9F7FF;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .tip-input-group {
+            margin-bottom: 16px;
+        }
+
+        .tip-input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .tip-label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .tip-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .cash-icon { background: #FFB347; }
+        .card-icon { background: #FF6B9D; }
+        .other-icon { background: #E84B8A; }
+
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #FF6B9D 0%, #E84B8A 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .btn-save:active {
+            transform: scale(0.98);
+        }
+
+        .btn-cancel {
+            background: #ddd;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .settings-option {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+
+        .settings-option button {
+            background: #667EEA;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .settings-option.danger button {
+            background: #ff6b6b;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #E5E5E5;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667EEA;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* Side Panel */
+        .side-panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            z-index: 99;
+        }
+
+        .side-panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .side-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 280px;
+            max-width: 80%;
+            background: var(--card-bg);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+
+        .side-panel.active {
+            transform: translateX(0);
+        }
+
+        .side-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .side-panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .side-panel-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .side-panel-close:active {
+            background: var(--bg-secondary);
+        }
+
+        .side-panel-content {
+            flex: 1;
+            padding: 12px 0;
+            overflow-y: auto;
+        }
+
+        .side-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 14px 20px;
+            background: none;
+            border: none;
+            text-align: left;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .side-menu-item:active {
+            background: var(--bg-secondary);
+        }
+
+        .side-menu-item.active-menu {
+            color: #FF6B9D;
+            font-weight: 600;
+            background: rgba(255, 107, 157, 0.08);
+        }
+
+        .side-menu-icon {
+            font-size: 20px;
+            min-width: 28px;
+        }
+
+        .side-menu-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 8px 16px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 3;
+            min-height: 70px;
+            padding: 12px 0 max(20px, env(safe-area-inset-bottom));
+        }
+
+        .nav-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            border-right: 1px solid var(--border-color);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 12px 8px 8px 8px;
+            min-height: 50px;
+        }
+
+        .nav-btn:last-child {
+            border-right: none;
+        }
+
+        .nav-btn.active {
+            color: #FF6B9D;
+        }
+
+        .month-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 18;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .month-modal-overlay.active {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .month-modal-overlay.closing {
+            animation: fadeOut 0.3s ease;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .month-modal {
+            background: var(--card-bg);
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            padding: 24px;
+            animation: slideUp 0.3s ease;
+            max-height: 90%;
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+
+        .month-modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-modal-header button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        /* ========== DARK MODE STYLES ========== */
+        body.dark-mode .shift-item,
+        body.dark-mode .summary-card,
+        body.dark-mode .archive-month-card,
+        body.dark-mode .stat-card,
+        body.dark-mode .form-input,
+        body.dark-mode .form-time,
+        body.dark-mode .modal-content {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .shift-item {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .summary-card {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .summary-label {
+            color: var(--text-secondary);
+        }
+
+        body.dark-mode .summary-value {
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .shift-date,
+        body.dark-mode .shift-income {
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .shift-details,
+        body.dark-mode .shift-breakdown {
+            color: var(--text-secondary);
+        }
+
+        body.dark-mode .archive-month-card {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .archive-month-name {
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .archive-stat {
+            background: var(--bg-secondary);
+        }
+
+        body.dark-mode .archive-stat-label {
+            color: var(--text-tertiary);
+        }
+
+        body.dark-mode .archive-stat-value {
+            color: #667EEA;
+        }
+
+        body.dark-mode .stat-card {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .stat-label {
+            color: var(--text-secondary);
+        }
+
+        body.dark-mode .stat-value {
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .form-input,
+        body.dark-mode .form-time {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .form-input:focus,
+        body.dark-mode .form-time:focus {
+            background: var(--input-bg);
+            border-color: #667EEA;
+        }
+
+        body.dark-mode .form-label {
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .tip-breakdown {
+            background: var(--bg-secondary);
+        }
+
+        body.dark-mode .tip-label {
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .tip-input {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .month-modal {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .month-modal-overlay {
+            background: var(--modal-overlay);
+        }
+
+        body.dark-mode .month-modal-header {
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .month-modal-header button {
+            color: var(--text-tertiary);
+        }
+
+        body.dark-mode .section-title {
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .empty-state {
+            color: var(--text-secondary);
+        }
+
+        body.dark-mode .modal-content {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .modal-header {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .btn-save {
+            background: #667EEA;
+            color: white;
+        }
+
+        body.dark-mode .btn-cancel {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .nav-bar {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .nav-btn {
+            color: var(--text-secondary);
+        }
+
+        body.dark-mode .nav-btn.active {
+            color: #667EEA;
+        }
+
+        body.dark-mode .settings-view {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        body.dark-mode #shiftsView,
+        body.dark-mode #archiveView,
+        body.dark-mode #statsView,
+        body.dark-mode #settingsView {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="app-header">
+            <div class="app-header-left">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <svg width="52" height="52" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
+                        <g transform="translate(100 110)">
+                            <g transform="scale(0.92)">
+                                <g transform="rotate(-30) scale(1 0.95)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(30) scale(1 0.95)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(0) scale(1 1.05)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round" opacity="1"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(-72) scale(1 0.92)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity="1"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(72) scale(1 0.92)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity="1"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(-118) scale(1 0.78)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g transform="rotate(118) scale(1 0.78)"><path d="M 0 0 C -10 -8, -16 -22, -14 -42 C -12 -58, -6 -68, 0 -72 C 6 -68, 12 -58, 14 -42 C 16 -22, 10 -8, 0 0 Z" fill="#fff5f7" stroke="#6b0e3a" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/><path d="M 0 -4 Q 0 -36 0 -68" stroke="#6b0e3a" stroke-width="0.8" fill="none" opacity="0.35"/></g>
+                                <g><path d="M 0 -2 Q -8 14, -18 30" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="-18" cy="30" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(-22 -18 30)"/></g>
+                                <g><path d="M 0 -2 Q -4 16, -8 34" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="-8" cy="34" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(-10 -8 34)"/></g>
+                                <g><path d="M 0 -2 Q 0 18, 0 36" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="0" cy="36" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(0 0 36)"/></g>
+                                <g><path d="M 0 -2 Q 4 16, 8 34" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="8" cy="34" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(10 8 34)"/></g>
+                                <g><path d="M 0 -2 Q 8 14, 18 30" fill="none" stroke="#ffd86a" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="18" cy="30" rx="2.2" ry="4" fill="#ffd86a" transform="rotate(22 18 30)"/></g>
+                                <path d="M 0 -2 Q 0 20, 0 42" fill="none" stroke="#6b0e3a" stroke-width="1.7" stroke-linecap="round"/>
+                                <circle cx="0" cy="44" r="2.6" fill="#6b0e3a"/>
+                            </g>
+                        </g>
+                    </svg>
+                    <div style="display: flex; flex-direction: column; gap: 0;">
+                        <h1 style="margin: 0; font-size: 26px; font-weight: 700; line-height: 1;">Lillytip</h1>
+                        <p id="headerSubtitle" style="margin: 4px 0 0 0;">Track your earnings</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button class="header-btn" id="hamburgerBtn" onclick="toggleMenu()" style="font-size: 20px; font-weight: 700; letter-spacing: 1px;">☰</button>
+            </div>
+        </div>
+
+        <!-- Side Panel Overlay -->
+        <div id="sidePanelOverlay" class="side-panel-overlay" onclick="closeMenu()"></div>
+
+        <!-- Side Panel -->
+        <div id="sidePanel" class="side-panel">
+            <div class="side-panel-header">
+                <span class="side-panel-title">Menu</span>
+                <button class="side-panel-close" onclick="closeMenu()">✕</button>
+            </div>
+            <div class="side-panel-content">
+                <button onclick="menuSwitchTab('shifts')" class="side-menu-item active-menu">
+                    <span class="side-menu-icon">📋</span>
+                    <span>Shifts</span>
+                </button>
+                <button onclick="menuSwitchTab('archive')" class="side-menu-item">
+                    <span class="side-menu-icon">📦</span>
+                    <span>Archive</span>
+                </button>
+                <button onclick="menuSwitchTab('stats')" class="side-menu-item">
+                    <span class="side-menu-icon">📊</span>
+                    <span>Stats</span>
+                </button>
+                <div class="side-menu-divider"></div>
+                <button onclick="menuToggleDarkMode()" id="menuDarkMode" class="side-menu-item">
+                    <span class="side-menu-icon">🌙</span>
+                    <span>Dark Mode</span>
+                </button>
+                <button onclick="menuOpenSettings()" class="side-menu-item">
+                    <span class="side-menu-icon">⚙️</span>
+                    <span>Settings</span>
+                </button>
+            </div>
+            <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center;">
+                <span style="font-size: 11px; color: var(--text-tertiary);">v0.1.5</span>
+            </div>
+        </div>
+
+        <div class="app-content" id="content">
+            <div id="shiftsView" style="padding: 0 16px;">
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <div class="summary-label">This Month (with gap)</div>
+                        <div class="summary-value" id="weekTotal">₪0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Tips Only (this month)</div>
+                        <div class="summary-value" id="tipsOnlyTotal">₪0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Avg Per Shift (tips only)</div>
+                        <div class="summary-value" id="avgShift">₪0</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Recent Shifts</div>
+                <div id="shiftsList"></div>
+            </div>
+
+            <div id="statsView" style="display: none; padding: 0 16px;">
+                <div id="monthlyStats"></div>
+                <div id="allTimeStats"></div>
+            </div>
+
+            <div id="archiveView" style="display: none; padding: 0 16px;">
+                <div class="section-title">Past Months</div>
+                <div id="archiveList"></div>
+            </div>
+
+            <div id="settingsView" style="display: none; padding: 0 16px;">
+                <div class="section-title">Settings</div>
+                
+                <div class="settings-option">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Minimum Wage (₪/hour)</div>
+                        <div style="font-size: 12px; color: #999;">Currently: ₪<span id="minWageDisplay">35.41</span>/hour</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--border-color);">
+                    <input type="number" id="minWageInput" placeholder="35.41" step="0.01" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);">
+                    <button onclick="updateMinWage()" style="padding: 10px 16px; background: #667EEA; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">Update</button>
+                </div>
+
+                <div class="settings-option">
+                    <div>
+                        <div style="font-weight: 600;">Apply 125% for 8-10h shifts</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Enable overtime rate calculations</div>
+                    </div>
+                    <input type="checkbox" id="enable125Rule" style="width: 20px; height: 20px; cursor: pointer;" onchange="toggle125Rule()">
+                </div>
+                
+                <div class="settings-option">
+                    <span>Export Data (JSON)</span>
+                    <button onclick="exportData()">Download</button>
+                </div>
+                <div class="settings-option">
+                    <span>Import Data (JSON)</span>
+                    <button onclick="document.getElementById('importFileInput').click()">Upload</button>
+                </div>
+                <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importData(event)">
+                <div class="settings-option danger">
+                    <span>Clear All Data</span>
+                    <button type="button" onclick="confirmClearData()">Clear</button>
+                </div>
+                <div style="margin-top: 24px; padding: 16px; background: var(--bg-secondary); border-radius: 8px;">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">
+                        💾 All data is stored locally on this device. No cloud backup. Export regularly to keep backups.
+                    </p>
+                </div>
+                <div style="margin-top: 16px; padding: 16px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                    <p style="font-size: 14px; color: #FF6B9D; margin: 0; font-weight: 600;">
+                        אני אוהב אותך קמוליק ❤️
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-add" onclick="openModal()">+</button>
+
+        </div> <!-- end app-content -->
+
+        <div class="modal-overlay" id="gapsListModalOverlay" style="display: none;" onclick="if(event.target === this) closeGapsListModal()">
+            <div class="modal" id="gapsListModal" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <span>Shifts with Gaps</span>
+                    <button onclick="closeGapsListModal()">✕</button>
+                </div>
+                <div id="gapsListContent" style="margin-bottom: 20px;"></div>
+                <button class="btn-save btn-cancel" style="width: 100%;" onclick="closeGapsListModal()">Close</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="deleteShiftModalOverlay" style="display: none;" onclick="if(event.target === this) closeDeleteShiftModal()">
+            <div class="modal" id="deleteShiftModal" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <span>⚠️ Delete Shift</span>
+                    <button onclick="closeDeleteShiftModal()">✕</button>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <p style="color: var(--text-primary); margin-bottom: 12px;">Are you sure you want to delete this shift? This cannot be undone.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-save btn-cancel" style="flex: 1;" onclick="closeDeleteShiftModal()">Cancel</button>
+                    <button class="btn-save" style="flex: 1; background: #ff6b6b;" onclick="performDeleteShift()">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="clearModalOverlay" style="display: none;" onclick="if(event.target === this) closeClearModal()">
+            <div class="modal" id="clearModal" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <span>⚠️ Delete All Data</span>
+                    <button onclick="closeClearModal()">✕</button>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <p style="color: var(--text-primary); margin-bottom: 12px;">This action cannot be undone. All shifts will be permanently deleted.</p>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">Type the word <strong>"delete"</strong> below to confirm:</p>
+                    <input type="text" id="clearVerificationInput" placeholder="Type 'delete' here" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: var(--input-bg); color: var(--text-primary); margin-bottom: 16px; box-sizing: border-box;">
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-save btn-cancel" style="flex: 1;" onclick="closeClearModal()">Cancel</button>
+                    <button class="btn-save" style="flex: 1; background: #ff6b6b;" onclick="performClearData()">Delete All</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="modalOverlay" onclick="if(event.target === this) closeModal()">
+            <div class="modal" id="shiftFormModal">
+                <div class="modal-header">
+                    <span>New Shift</span>
+                    <button onclick="closeModal()">✕</button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" id="shiftDate">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Working Time</label>
+                    <div class="time-inputs">
+                        <div>
+                            <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">Start</label>
+                            <input type="time" class="form-time" id="startTime">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 12px; margin-bottom: 6px;">End</label>
+                            <input type="time" class="form-time" id="endTime">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-label">Income Breakdown (Required)</div>
+                <div class="tip-breakdown">
+                    <div class="tip-input-group">
+                        <label class="tip-label">
+                            <span class="tip-icon cash-icon">💵</span>
+                            Cash Tips
+                        </label>
+                        <input type="number" class="form-input" id="cashTips" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="tip-input-group">
+                        <label class="tip-label">
+                            <span class="tip-icon card-icon">💳</span>
+                            Card Tips
+                        </label>
+                        <input type="number" class="form-input" id="cardTips" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="tip-input-group">
+                        <label class="tip-label">
+                            <span class="tip-icon other-icon">📱</span>
+                            Other
+                        </label>
+                        <input type="number" class="form-input" id="otherTips" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                </div>
+
+                <button class="btn-save" onclick="saveShift()">Save Shift</button>
+                <button class="btn-save btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+
+        <div class="month-modal-overlay" id="monthModalOverlay" onclick="if(event.target === this) closeMonthModal()">
+            <div class="month-modal" id="monthModal" onclick="event.stopPropagation()">
+                <div class="month-modal-header">
+                    <span id="monthModalTitle">Month Details</span>
+                    <button onclick="closeMonthModal()">✕</button>
+                </div>
+                <div id="monthModalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let shifts = [];
+        let currentTab = 'shifts';
+        let minWage = parseFloat(localStorage.getItem('minWage')) || 35.41;
+
+        function toggle125Rule() {
+            const enabled = document.getElementById('enable125Rule').checked;
+            localStorage.setItem('enable125Rule', enabled);
+            renderShifts();
+            renderArchive();
+            updateStats();
+        }
+
+        function updateMinWage() {
+            const input = document.getElementById('minWageInput').value;
+            if (!input) {
+                alert('Please enter a minimum wage amount');
+                return;
+            }
+            const newMinWage = parseFloat(input);
+            if (newMinWage <= 0) {
+                alert('Minimum wage must be greater than 0');
+                return;
+            }
+            minWage = newMinWage;
+            localStorage.setItem('minWage', minWage);
+            document.getElementById('minWageDisplay').textContent = minWage.toFixed(2);
+            document.getElementById('minWageInput').value = '';
+            renderShifts();
+            renderArchive();
+            updateStats();
+            alert('Minimum wage updated to ₪' + minWage.toFixed(2) + '/hour');
+        }
+
+        function calculateHours(startTime, endTime, isOvernightShift = false) {
+            if (!startTime || !endTime) return 0;
+            const start = new Date(`2000-01-01T${startTime}`);
+            let end = new Date(`2000-01-01T${endTime}`);
+            
+            // If end time is earlier than start time, assume it's the next day (overnight shift)
+            if (end < start || isOvernightShift) {
+                end = new Date(`2000-01-02T${endTime}`);
+            }
+            
+            const diffMs = end - start;
+            const diffHours = diffMs / (1000 * 60 * 60);
+            return Math.max(0, diffHours);
+        }
+
+        function getWeekShifts() {
+            const today = new Date();
+            // In Israel, the work week runs Saturday to Friday
+            // Get the day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+            const dayOfWeek = today.getDay();
+            
+            // Calculate days to subtract to get to Saturday
+            // If today is Saturday (6), daysToSubtract = 0
+            // If today is Sunday (0), daysToSubtract = 1
+            // If today is Monday (1), daysToSubtract = 2, etc.
+            const daysToSubtract = dayOfWeek === 6 ? 0 : (dayOfWeek + 1) % 7;
+            
+            // Get Saturday of this week
+            const saturday = new Date(today);
+            saturday.setDate(today.getDate() - daysToSubtract);
+            saturday.setHours(0, 0, 0, 0);
+            
+            // Get Friday of next week (6 days after Saturday)
+            const friday = new Date(saturday);
+            friday.setDate(saturday.getDate() + 6);
+            friday.setHours(23, 59, 59, 999);
+            
+            return shifts.filter(s => {
+                const shiftDate = new Date(s.date);
+                return shiftDate >= saturday && shiftDate <= friday;
+            });
+        }
+
+        function calculateDelta(shift) {
+            const hours = calculateHours(shift.startTime, shift.endTime);
+            const enable125 = localStorage.getItem('enable125Rule') !== 'false';
+            
+            // Calculate minimum wage with overtime tiers
+            let minRequired = 0;
+            
+            if (!enable125) {
+                // If overtime rule is disabled, all hours are regular rate
+                minRequired = hours * minWage;
+            } else if (hours <= 8) {
+                // Regular hours: 0-8
+                minRequired = hours * minWage;
+            } else if (hours <= 10) {
+                // First 8 at regular, next 2 at 125%
+                const regularHours = 8;
+                const overtime125Hours = hours - 8;
+                const overtime125Rate = minWage * 1.25;
+                minRequired = (regularHours * minWage) + (overtime125Hours * overtime125Rate);
+            } else {
+                // First 8 at regular, next 2 at 125%, rest at 150%
+                const regularHours = 8;
+                const overtime125Hours = 2;
+                const overtime150Hours = hours - 10;
+                const overtime125Rate = minWage * 1.25;
+                const overtime150Rate = minWage * 1.5;
+                minRequired = (regularHours * minWage) + (overtime125Hours * overtime125Rate) + (overtime150Hours * overtime150Rate);
+            }
+            
+            const delta = shift.total - minRequired;
+            const hourlyAverage = hours > 0 ? shift.total / hours : 0;
+            return {
+                hours: hours,
+                minRequired: minRequired,
+                delta: delta,
+                isGap: delta < 0,
+                overtimeHours: Math.max(0, hours - 8),
+                hourlyAverage: hourlyAverage
+            };
+        }
+
+        function toggleDarkMode() {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            
+            // Update theme color for browser
+            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) {
+                metaThemeColor.setAttribute('content', isDarkMode ? '#242424' : '#FF6B9D');
+            }
+        }
+
+
+        function exportData() {
+            try {
+                const dataStr = JSON.stringify(shifts, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `tips-data-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                alert('✅ Data exported successfully!');
+            } catch (error) {
+                alert('❌ Error exporting data: ' + error.message);
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(importedData)) {
+                        alert('Invalid file format. Please use an exported JSON file from this app.');
+                        return;
+                    }
+
+                    const isValidShifts = importedData.every(shift => 
+                        shift.id && shift.date && shift.startTime && shift.endTime && 
+                        shift.total !== undefined && shift.breakdown
+                    );
+
+                    if (!isValidShifts && importedData.length > 0) {
+                        alert('Invalid file format. The shifts data is corrupted or from a different version.');
+                        return;
+                    }
+
+                    const action = confirm(
+                        `Found ${importedData.length} shifts in the file.\n\n` +
+                        'Click OK to MERGE with existing data, or Cancel to REPLACE all data.'
+                    );
+
+                    if (action) {
+                        shifts = [...shifts, ...importedData];
+                        alert(`✅ Successfully merged ${importedData.length} shifts!`);
+                    } else {
+                        shifts = importedData;
+                        alert(`✅ Successfully imported ${importedData.length} shifts!`);
+                    }
+
+                    saveToLocalStorage();
+                    renderShifts();
+                    renderArchive();
+                    updateStats();
+                    
+                } catch (error) {
+                    alert('Error reading file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function confirmClearData() {
+            document.getElementById('clearModalOverlay').style.display = 'flex';
+            document.getElementById('clearVerificationInput').value = '';
+            document.getElementById('clearVerificationInput').focus();
+        }
+
+        function closeClearModal() {
+            document.getElementById('clearModalOverlay').style.display = 'none';
+            document.getElementById('clearVerificationInput').value = '';
+        }
+
+        function performClearData() {
+            const input = document.getElementById('clearVerificationInput').value;
+            if (input !== 'delete') {
+                alert('❌ Incorrect. Type "delete" exactly to confirm.');
+                return;
+            }
+            
+            shifts = [];
+            saveToLocalStorage();
+            renderShifts();
+            renderArchive();
+            updateStats();
+            closeClearModal();
+            alert('✅ All data has been deleted.');
+        }
+
+        function initializeApp() {
+            // Load dark mode preference
+            const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+            if (darkModeEnabled) {
+                document.body.classList.add('dark-mode');
+                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                if (metaThemeColor) {
+                    metaThemeColor.setAttribute('content', '#242424');
+                }
+                const btn = document.getElementById('menuDarkMode');
+                if (btn) {
+                    btn.querySelector('.side-menu-icon').textContent = '☀️';
+                    btn.querySelector('span:last-child').textContent = 'Light Mode';
+                }
+            }
+
+            const stored = localStorage.getItem('tipsTrackerData');
+            if (stored) {
+                try {
+                    shifts = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Failed to load data:', e);
+                    shifts = [];
+                }
+            }
+            document.getElementById('minWageDisplay').textContent = minWage.toFixed(2);
+            
+            // Load 125% rule setting
+            const enable125 = localStorage.getItem('enable125Rule') !== 'false';
+            document.getElementById('enable125Rule').checked = enable125;
+            
+            setDefaultDate();
+            renderShifts();
+            renderArchive();
+            updateStats();
+        }
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('tipsTrackerData', JSON.stringify(shifts));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    alert('Storage limit exceeded. Please export and clear old data.');
+                } else {
+                    alert('Error saving data: ' + e.message);
+                }
+            }
+        }
+
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('shiftDate').value = today;
+        }
+
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+            // Only clear form if we're NOT editing
+            if (!window.editingShiftId) {
+                clearForm();
+                setDefaultDate();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            window.editingShiftId = null;
+            const modalHeader = document.querySelector('.modal-header span');
+            modalHeader.textContent = 'New Shift';
+        }
+
+        function clearForm() {
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            document.getElementById('cashTips').value = '';
+            document.getElementById('cardTips').value = '';
+            document.getElementById('otherTips').value = '';
+        }
+
+        function saveShift() {
+            const date = document.getElementById('shiftDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const cash = parseFloat(document.getElementById('cashTips').value) || 0;
+            const card = parseFloat(document.getElementById('cardTips').value) || 0;
+            const other = parseFloat(document.getElementById('otherTips').value) || 0;
+
+            if (cash + card + other === 0) {
+                alert('Please enter at least one income source (cash, card, or other)');
+                return;
+            }
+
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            const total = cash + card + other;
+
+            // Check if we're editing an existing shift
+            if (window.editingShiftId) {
+                const shiftIndex = shifts.findIndex(s => s.id === window.editingShiftId);
+                if (shiftIndex !== -1) {
+                    shifts[shiftIndex] = {
+                        id: window.editingShiftId,
+                        date: date,
+                        startTime: startTime,
+                        endTime: endTime,
+                        total: Math.round(total * 100) / 100,
+                        breakdown: {
+                            cash: Math.round(cash * 100) / 100,
+                            card: Math.round(card * 100) / 100,
+                            other: Math.round(other * 100) / 100
+                        }
+                    };
+                    window.editingShiftId = null;
+                }
+            } else {
+                // Create new shift
+                const shift = {
+                    id: Date.now(),
+                    date: date,
+                    startTime: startTime,
+                    endTime: endTime,
+                    total: Math.round(total * 100) / 100,
+                    breakdown: {
+                        cash: Math.round(cash * 100) / 100,
+                        card: Math.round(card * 100) / 100,
+                        other: Math.round(other * 100) / 100
+                    }
+                };
+                shifts.unshift(shift);
+            }
+
+            saveToLocalStorage();
+            closeModal();
+            renderShifts();
+            renderArchive();
+            updateStats();
+            
+            // If we were editing, refresh the shift details display
+            const shiftIdToRefresh = window.lastViewedShiftId;
+            if (shiftIdToRefresh && window.editingShiftId === null) {
+                // Re-display the updated shift details
+                setTimeout(() => {
+                    viewShiftDetails(shiftIdToRefresh);
+                }, 50);
+            }
+        }
+
+        function deleteShift(id) {
+            window.shiftIdToDelete = id;
+            document.getElementById('deleteShiftModalOverlay').style.display = 'flex';
+        }
+
+        function closeDeleteShiftModal() {
+            document.getElementById('deleteShiftModalOverlay').style.display = 'none';
+            window.shiftIdToDelete = null;
+        }
+
+        function performDeleteShift() {
+            const id = window.shiftIdToDelete;
+            shifts = shifts.filter(s => s.id !== id);
+            saveToLocalStorage();
+            renderShifts();
+            renderArchive();
+            updateStats();
+            closeDeleteShiftModal();
+            closeMonthModal();
+        }
+
+        function fmt(num, decimals = 2) {
+            return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        }
+
+        function fmt0(num) {
+            return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function getDisplayDate(shift) {
+            return formatDate(shift.date);
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const options = { weekday: 'short' };
+            const dayOfWeek = date.toLocaleDateString('en-US', options);
+            return `${dayOfWeek}, ${day}/${month}`;
+        }
+
+        function formatTime(timeStr) {
+            if (!timeStr) return '—';
+            return new Date(`2000-01-01T${timeStr}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+
+        function renderShifts() {
+            const list = document.getElementById('shiftsList');
+            if (shifts.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>No shifts yet. Tap + to log your first shift!</p></div>';
+                document.getElementById('headerSubtitle').textContent = '0 shifts this week | 0 shifts this month';
+                return;
+            }
+
+            // Get current month
+            const today = new Date();
+            const currentMonthKey = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+
+            // Filter shifts for current month only
+            const currentMonthShifts = shifts.filter(shift => {
+                const date = new Date(shift.date + 'T00:00:00');
+                const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                return monthKey === currentMonthKey;
+            });
+
+            // Get week shifts (Sunday to Saturday)
+            const weekShifts = getWeekShifts();
+
+            if (currentMonthShifts.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>No shifts this month. Tap + to log your first shift!</p></div>';
+                document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week | 0 shifts this month`;
+                return;
+            }
+
+            // Sort by date descending (latest first)
+            const sortedShifts = [...currentMonthShifts].sort((a, b) => {
+                return new Date(b.date) - new Date(a.date);
+            });
+
+            // Update header subtitle
+            document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week | ${currentMonthShifts.length} shifts this month`;
+
+            // Build HTML for current month only
+            let html = '';
+            sortedShifts.forEach(shift => {
+                const calc = calculateDelta(shift);
+                const deltaColor = calc.isGap ? '#ff6b6b' : '#28a745';
+                const deltaLabel = calc.isGap ? 'Gap (restaurant pays)' : 'Surplus';
+                const deltaSign = calc.isGap ? '-' : '+';
+
+                html += `
+                    <div class="shift-item" style="cursor: pointer;" onclick="viewShiftDetails(${shift.id})">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; gap: 12px; align-items: baseline;">
+                                    <div class="shift-date" style="margin: 0;">${getDisplayDate(shift)}</div>
+                                    <div class="shift-details" style="margin: 0;">
+                                        <span>${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}</span>
+                                        <span style="color: var(--text-tertiary); margin: 0 4px;">•</span>
+                                        <span style="color: var(--text-tertiary);">${calc.hours.toFixed(1)}h</span>
+                                    </div>
+                                </div>
+                                <div class="shift-breakdown" style="margin-top: 2px;">
+                                    💵 ₪${fmt(shift.breakdown.cash)} | 💳 ₪${fmt(shift.breakdown.card)} | 📱 ₪${fmt(shift.breakdown.other)}
+                                </div>
+                            </div>
+                            <div style="text-align: right; margin-left: 12px;">
+                                <div class="shift-income">₪${fmt(shift.total)}</div>
+                                <div style="font-size: 11px; font-weight: 600; color: ${deltaColor}; margin-top: 2px;">
+                                    ${deltaSign}₪${fmt(Math.abs(calc.delta))}
+                                </div>
+                                <div style="font-size: 11px; color: #667EEA; font-weight: 600; margin-top: 2px;">
+                                    ₪${fmt(calc.hourlyAverage)}/h
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px; font-size: 11px; color: var(--text-tertiary);">
+                            ${(() => {
+                                const enable125 = localStorage.getItem('enable125Rule') !== 'false';
+                                if (!enable125) {
+                                    return `${fmt(calc.hours, 1)}h @ ₪${fmt(minWage)}`;
+                                }
+                                if (calc.hours <= 8) {
+                                    return `${fmt(calc.hours, 1)}h @ ₪${fmt(minWage)}`;
+                                } else if (calc.hours <= 10) {
+                                    return `8h @ ₪${fmt(minWage)} + ${fmt(calc.hours - 8, 1)}h @ ₪${fmt(minWage * 1.25)}`;
+                                } else {
+                                    return `8h @ ₪${fmt(minWage)} + 2h @ ₪${fmt(minWage * 1.25)} + ${fmt(calc.hours - 10, 1)}h @ ₪${fmt(minWage * 1.5)}`;
+                                }
+                            })()}
+                        </div>
+                        <div style="margin-top: 6px; font-size: 12px; color: #667EEA; font-weight: 600;">
+                            ➜ Tap to view details
+                        </div>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        function renderArchive() {
+            const list = document.getElementById('archiveList');
+            
+            // Group all shifts by month
+            const shiftsByMonth = {};
+            shifts.forEach(shift => {
+                const date = new Date(shift.date + 'T00:00:00');
+                const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                if (!shiftsByMonth[monthKey]) {
+                    shiftsByMonth[monthKey] = [];
+                }
+                shiftsByMonth[monthKey].push(shift);
+            });
+
+            // Get current month
+            const today = new Date();
+            const currentMonthKey = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+
+            // Get sorted month keys (most recent first), excluding current month
+            const monthKeys = Object.keys(shiftsByMonth)
+                .filter(key => key !== currentMonthKey)
+                .sort((a, b) => {
+                    const dateA = new Date(shiftsByMonth[a][0].date);
+                    const dateB = new Date(shiftsByMonth[b][0].date);
+                    return dateB - dateA;
+                });
+
+            if (monthKeys.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>No past months yet. Archive will appear here.</p></div>';
+                return;
+            }
+
+            // Build HTML with month cards showing summaries
+            let html = '';
+            monthKeys.forEach(monthKey => {
+                const monthShifts = shiftsByMonth[monthKey];
+                const totalEarned = monthShifts.reduce((sum, s) => sum + s.total, 0);
+                
+                // Calculate total hours and minimum required with overtime
+                let totalHours = 0;
+                let totalMinRequired = 0;
+                monthShifts.forEach(shift => {
+                    const hours = calculateHours(shift.startTime, shift.endTime);
+                    totalHours += hours;
+                    const calc = calculateDelta(shift);
+                    totalMinRequired += calc.minRequired;
+                });
+                
+                const monthlyGap = totalMinRequired - totalEarned;
+                const totalCash = monthShifts.reduce((sum, s) => sum + s.breakdown.cash, 0);
+                const totalCard = monthShifts.reduce((sum, s) => sum + s.breakdown.card, 0);
+                const totalOther = monthShifts.reduce((sum, s) => sum + s.breakdown.other, 0);
+                const shiftCount = monthShifts.length;
+                const monthId = monthKey.replace(/\s+/g, '-');
+                const hasGap = monthlyGap > 0;
+                const gapColor = hasGap ? '#ff6b6b' : '#28a745';
+                const gapLabel = hasGap ? '⚠️ Gap (Restaurant pays)' : '✓ Above minimum';
+
+                html += `
+                    <div class="archive-month-card" onclick="toggleMonthDetails('${monthId}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div class="archive-month-name">${monthKey}</div>
+                                <div style="font-size: 12px; color: #999;">${shiftCount} shifts • ${fmt(totalHours, 1)}h</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="archive-total-value">₪${fmt(totalEarned)}</div>
+                                <div style="font-size: 11px; color: ${gapColor}; font-weight: 600;">${gapLabel}</div>
+                            </div>
+                        </div>
+
+                        <div class="archive-month-stats" style="margin-top: 12px;">
+                            <div class="archive-stat">
+                                <div class="archive-stat-label">💵 Cash</div>
+                                <div class="archive-stat-value">₪${fmt0(totalCash)}</div>
+                            </div>
+                            <div class="archive-stat">
+                                <div class="archive-stat-label">💳 Card</div>
+                                <div class="archive-stat-value">₪${fmt0(totalCard)}</div>
+                            </div>
+                            <div class="archive-stat">
+                                <div class="archive-stat-label">📱 Other</div>
+                                <div class="archive-stat-value">₪${fmt0(totalOther)}</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-size: 12px; color: var(--text-secondary);">Total Earned:</span>
+                                <span style="font-size: 12px; font-weight: 600; color: #28a745;">₪${fmt(totalEarned)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="font-size: 12px; color: var(--text-secondary);">Restaurant Paid Gap:</span>
+                                <span style="font-size: 12px; font-weight: 600; color: ${hasGap ? '#ff6b6b' : '#28a745'};">₪${fmt(Math.max(0, monthlyGap))}</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 12px; padding: 12px; background: ${hasGap ? '#fff5f5' : '#f5fff5'}; border-radius: 8px; border-left: 3px solid ${gapColor};">
+                            <div style="font-size: 12px; color: ${gapColor}; font-weight: 600;">Min Required: ₪${fmt(totalMinRequired)}</div>
+                            <div style="font-size: 14px; color: ${gapColor}; font-weight: 700; margin-top: 4px;">${hasGap ? '-' : '+'}₪${fmt(Math.abs(monthlyGap))}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        function toggleMonthDetails(monthId) {
+            // Find the month data from the shifts
+            const today = new Date();
+            const currentMonthKey = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            
+            // Group all shifts by month
+            const shiftsByMonth = {};
+            shifts.forEach(shift => {
+                const date = new Date(shift.date + 'T00:00:00');
+                const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                if (!shiftsByMonth[monthKey]) {
+                    shiftsByMonth[monthKey] = [];
+                }
+                shiftsByMonth[monthKey].push(shift);
+            });
+
+            // Find the matching month
+            let monthKey = null;
+            for (let key in shiftsByMonth) {
+                if (key.replace(/\s+/g, '-') === monthId) {
+                    monthKey = key;
+                    break;
+                }
+            }
+
+            if (!monthKey) return;
+
+            const monthShifts = shiftsByMonth[monthKey];
+            document.getElementById('monthModalTitle').textContent = monthKey;
+
+            // Build the content
+            let html = '<div style="margin-bottom: 16px; padding: 16px; background: var(--bg-secondary); border-radius: 8px;">';
+            const totalEarned = monthShifts.reduce((sum, s) => sum + s.total, 0);
+            let totalMinRequired = 0;
+            monthShifts.forEach(shift => {
+                const calc = calculateDelta(shift);
+                totalMinRequired += calc.minRequired;
+            });
+            const monthlyGap = totalMinRequired - totalEarned;
+            const hasGap = monthlyGap > 0;
+
+            html += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Total Earned:</span>
+                    <span style="font-weight: 600; font-size: 18px; color: var(--text-primary);">₪${totalEarned.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Min Required:</span>
+                    <span style="font-weight: 600; color: var(--text-primary);">₪${totalMinRequired.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary); font-weight: 600;">${hasGap ? '⚠️ Gap:' : '✓ Surplus:'}</span>
+                    <span style="font-weight: 700; color: ${hasGap ? '#ff6b6b' : '#28a745'};">₪${Math.abs(monthlyGap).toFixed(2)}</span>
+                </div>
+            </div>
+            <div class="section-title">All Shifts</div>`;
+
+            // Add each shift
+            monthShifts.forEach(shift => {
+                const calc = calculateDelta(shift);
+                const deltaColor = calc.isGap ? '#ff6b6b' : '#28a745';
+                html += `
+                    <div class="shift-item" style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div class="shift-date">${getDisplayDate(shift)}</div>
+                                <div class="shift-details">
+                                    <span>${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}</span>
+                                    <span style="color: #999;">• ${calc.hours.toFixed(1)}h</span>
+                                </div>
+                                <div class="shift-breakdown">
+                                    💵 ₪${shift.breakdown.cash.toFixed(2)} | 💳 ₪${shift.breakdown.card.toFixed(2)} | 📱 ₪${shift.breakdown.other.toFixed(2)}
+                                </div>
+                                <div style="font-size: 11px; color: #999; margin-top: 6px;">
+                                    ${(() => {
+                                        const enable125 = localStorage.getItem('enable125Rule') !== 'false';
+                                        if (!enable125) {
+                                            return `${calc.hours.toFixed(1)}h @ ₪${minWage.toFixed(2)}`;
+                                        }
+                                        if (calc.hours <= 8) {
+                                            return `${calc.hours.toFixed(1)}h @ ₪${minWage.toFixed(2)}`;
+                                        } else if (calc.hours <= 10) {
+                                            return `8h @ ₪${minWage.toFixed(2)} + ${(calc.hours - 8).toFixed(1)}h @ ₪${(minWage * 1.25).toFixed(2)}`;
+                                        } else {
+                                            return `8h @ ₪${minWage.toFixed(2)} + 2h @ ₪${(minWage * 1.25).toFixed(2)} + ${(calc.hours - 10).toFixed(1)}h @ ₪${(minWage * 1.5).toFixed(2)}`;
+                                        }
+                                    })()}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="shift-income">₪${shift.total.toFixed(2)}</div>
+                                <div style="font-size: 12px; font-weight: 600; color: ${deltaColor}; margin-top: 4px;">
+                                    ${calc.isGap ? '-' : '+'}₪${Math.abs(calc.delta).toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <button onclick="editShift(${shift.id})" style="flex: 1; padding: 6px; background: #667EEA; color: white; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 500;">Edit</button>
+                            <button onclick="deleteShift(${shift.id})" style="flex: 1; padding: 6px; background: #ff6b6b; color: white; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 500;">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('monthModalContent').innerHTML = html;
+            document.getElementById('monthModalOverlay').classList.add('active');
+        }
+
+        function closeMonthModal() {
+            const overlay = document.getElementById('monthModalOverlay');
+            overlay.classList.add('closing');
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                overlay.classList.remove('closing');
+            }, 300);
+        }
+
+        function viewShiftDetails(shiftId) {
+            window.lastViewedShiftId = shiftId;
+            const shift = shifts.find(s => s.id === shiftId);
+            if (!shift) return;
+
+            const calc = calculateDelta(shift);
+            const deltaColor = calc.isGap ? '#ff6b6b' : '#28a745';
+            const deltaLabel = calc.isGap ? 'Gap (Restaurant pays)' : 'Surplus';
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const bgColor = isDarkMode ? 'var(--bg-secondary)' : '#f5f5f5';
+            const textColor = isDarkMode ? 'var(--text-primary)' : '#333';
+            const secondaryColor = isDarkMode ? 'var(--text-secondary)' : '#666';
+            const tertiaryColor = isDarkMode ? 'var(--text-tertiary)' : '#999';
+
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                        <div>
+                            <div class="shift-date" style="font-size: 18px; color: ${textColor};">${getDisplayDate(shift)}</div>
+                            <div style="color: ${tertiaryColor}; font-size: 14px; margin-top: 4px;">${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 24px; font-weight: 700; color: #28a745;">₪${fmt(shift.total)}</div>
+                            <div style="font-size: 12px; color: ${tertiaryColor}; margin-top: 4px;">Total Earned</div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 16px; background: ${bgColor}; border-radius: 12px; margin-bottom: 16px;">
+                        <div style="font-weight: 600; font-size: 14px; color: ${textColor}; margin-bottom: 12px;">Hours & Breakdown</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: ${secondaryColor};">Total Hours:</span>
+                            <span style="font-weight: 600; color: ${textColor};">${calc.hours.toFixed(2)}h</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+                            <span style="color: ${secondaryColor};">Rate Breakdown:</span>
+                        </div>
+                        <div style="font-size: 13px; color: ${secondaryColor}; line-height: 1.6;">
+                            ${(() => {
+                                const enable125 = localStorage.getItem('enable125Rule') !== 'false';
+                                if (!enable125) {
+                                    return `${calc.hours.toFixed(2)}h @ ₪${minWage.toFixed(2)}/h = ₪${(calc.hours * minWage).toFixed(2)}`;
+                                }
+                                if (calc.hours <= 8) {
+                                    return `${calc.hours.toFixed(2)}h @ ₪${minWage.toFixed(2)}/h = ₪${(calc.hours * minWage).toFixed(2)}`;
+                                } else if (calc.hours <= 10) {
+                                    return `8h @ ₪${minWage.toFixed(2)}/h = ₪${(8 * minWage).toFixed(2)}<br/>${(calc.hours - 8).toFixed(2)}h @ ₪${(minWage * 1.25).toFixed(2)}/h = ₪${((calc.hours - 8) * minWage * 1.25).toFixed(2)}`;
+                                } else {
+                                    return `8h @ ₪${minWage.toFixed(2)}/h = ₪${(8 * minWage).toFixed(2)}<br/>2h @ ₪${(minWage * 1.25).toFixed(2)}/h = ₪${(2 * minWage * 1.25).toFixed(2)}<br/>${(calc.hours - 10).toFixed(2)}h @ ₪${(minWage * 1.5).toFixed(2)}/h = ₪${((calc.hours - 10) * minWage * 1.5).toFixed(2)}`;
+                                }
+                            })()}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                            <span style="color: ${secondaryColor};">Average per hour:</span>
+                            <span style="font-weight: 700; color: #FF6B9D; font-size: 15px;">₪${calc.hourlyAverage.toFixed(2)}/h</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 16px; background: ${bgColor}; border-radius: 12px; margin-bottom: 16px;">
+                        <div style="font-weight: 600; font-size: 14px; color: ${textColor}; margin-bottom: 12px;">Income Sources</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: ${secondaryColor};">💵 Cash Tips:</span>
+                            <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.cash)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: ${secondaryColor};">💳 Card Tips:</span>
+                            <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.card)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: ${secondaryColor};">📱 Other Income:</span>
+                            <span style="font-weight: 600; color: ${textColor};">₪${fmt(shift.breakdown.other)}</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 16px; background: ${calc.isGap ? (isDarkMode ? '#2a1818' : '#fff5f5') : (isDarkMode ? '#182a18' : '#f5fff5')}; border-radius: 12px; border-left: 3px solid ${deltaColor};">
+                        <div style="font-size: 12px; color: ${deltaColor}; font-weight: 600; margin-bottom: 8px;">Minimum Wage Status</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: ${secondaryColor};">Min Required:</span>
+                            <span style="font-weight: 600; color: ${textColor};">₪${calc.minRequired.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid ${deltaColor}40;">
+                            <span style="color: ${deltaColor}; font-weight: 600;">${deltaLabel}:</span>
+                            <span style="font-size: 18px; font-weight: 700; color: ${deltaColor};">${calc.isGap ? '-' : '+'}₪${Math.abs(calc.delta).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 20px;">
+                    <button onclick="editShift(${shift.id})" style="flex: 1; padding: 12px; background: #667EEA; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">Edit</button>
+                    <button onclick="deleteShift(${shift.id})" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">Delete</button>
+                </div>
+            `;
+
+            document.getElementById('monthModalTitle').textContent = 'Shift Details';
+            document.getElementById('monthModalContent').innerHTML = html;
+            document.getElementById('monthModalOverlay').classList.add('active');
+        }
+
+        function editShift(id) {
+            const shift = shifts.find(s => s.id === id);
+            if (!shift) return;
+
+            document.getElementById('shiftDate').value = shift.date;
+            document.getElementById('startTime').value = shift.startTime;
+            document.getElementById('endTime').value = shift.endTime;
+            document.getElementById('cashTips').value = shift.breakdown.cash;
+            document.getElementById('cardTips').value = shift.breakdown.card;
+            document.getElementById('otherTips').value = shift.breakdown.other;
+
+            // Change modal header to indicate edit mode
+            const modalHeader = document.querySelector('.modal-header span');
+            modalHeader.textContent = 'Edit Shift';
+
+            // Store the ID we're editing
+            window.editingShiftId = id;
+
+            openModal();
+        }
+
+        function showGapsList(allTime = false) {
+            let shiftsToCheck;
+            
+            if (allTime) {
+                shiftsToCheck = shifts;
+            } else {
+                const now = new Date();
+                const currentMonthKey = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                shiftsToCheck = shifts.filter(s => {
+                    const date = new Date(s.date + 'T00:00:00');
+                    const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                    return monthKey === currentMonthKey;
+                });
+            }
+
+            let gapsHtml = '';
+            shiftsToCheck.forEach(shift => {
+                const calc = calculateDelta(shift);
+                if (calc.isGap) {
+                    gapsHtml += `
+                        <div style="padding: 10px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #ff6b6b;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <div style="font-weight: 600; color: var(--text-primary);">${getDisplayDate(shift)}</div>
+                                <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">₪${calc.minRequired.toFixed(2)}</div>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">${formatTime(shift.startTime)} - ${formatTime(shift.endTime)} • ${calc.hours.toFixed(1)}h</div>
+                            <div style="text-align: right;">
+                                <span style="font-weight: 600; color: #ff6b6b; font-size: 16px;">₪${Math.abs(calc.delta).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('gapsListContent').innerHTML = gapsHtml || '<p style="color: var(--text-secondary);">No gaps found</p>';
+            document.getElementById('gapsListModalOverlay').style.display = 'flex';
+        }
+
+        function closeGapsListModal() {
+            document.getElementById('gapsListModalOverlay').style.display = 'none';
+        }
+
+        function updateStats() {
+            const now = new Date();
+            const currentMonthKey = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            const isDarkMode = document.body.classList.contains('dark-mode');
+
+            const weekShifts = getWeekShifts();
+
+            const currentMonthShifts = shifts.filter(s => {
+                const date = new Date(s.date + 'T00:00:00');
+                const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                return monthKey === currentMonthKey;
+            });
+
+            const monthTotal = currentMonthShifts.reduce((sum, s) => sum + s.total, 0);
+            // Calculate tips-only average (without gaps)
+            const tipsOnlyAvg = currentMonthShifts.length > 0 ? monthTotal / currentMonthShifts.length : 0;
+            
+            // Add gaps as positive value to total (restaurant pays the gap)
+            let monthGaps = 0;
+            currentMonthShifts.forEach(shift => {
+                const calc = calculateDelta(shift);
+                if (calc.isGap) {
+                    monthGaps += Math.abs(calc.delta);
+                }
+            });
+            const monthTotalWithGaps = monthTotal + monthGaps;
+
+            document.getElementById('weekTotal').textContent = '₪' + fmt(monthTotalWithGaps);
+            document.getElementById('tipsOnlyTotal').textContent = '₪' + fmt(monthTotal);
+            document.getElementById('avgShift').textContent = '₪' + fmt(tipsOnlyAvg);
+            document.getElementById('headerSubtitle').textContent = `${weekShifts.length} shifts this week | ${currentMonthShifts.length} shifts this month`;
+
+            const totalEarned = shifts.reduce((sum, s) => sum + s.total, 0);
+            const totalCash = shifts.reduce((sum, s) => sum + s.breakdown.cash, 0);
+            const totalCard = shifts.reduce((sum, s) => sum + s.breakdown.card, 0);
+            const totalOther = shifts.reduce((sum, s) => sum + s.breakdown.other, 0);
+            const totalHours = shifts.reduce((sum, s) => sum + calculateHours(s.startTime, s.endTime), 0);
+            let totalAllTimeGap = 0;
+            shifts.forEach(shift => {
+                const calc = calculateDelta(shift);
+                if (calc.isGap) {
+                    totalAllTimeGap += Math.abs(calc.delta);
+                }
+            });
+
+            // Calculate current month gap - sum of individual shift gaps
+            const currentMonthEarned = currentMonthShifts.reduce((sum, s) => sum + s.total, 0);
+            const currentMonthCash = currentMonthShifts.reduce((sum, s) => sum + s.breakdown.cash, 0);
+            const currentMonthCard = currentMonthShifts.reduce((sum, s) => sum + s.breakdown.card, 0);
+            const currentMonthOther = currentMonthShifts.reduce((sum, s) => sum + s.breakdown.other, 0);
+            let currentMonthRequired = 0;
+            let currentMonthTotalGap = 0;
+            let hasAnyGaps = false;
+            currentMonthShifts.forEach(shift => {
+                const calc = calculateDelta(shift);
+                currentMonthRequired += calc.minRequired;
+                if (calc.isGap) {
+                    // delta is negative for gaps, so we take absolute value to get the gap amount
+                    currentMonthTotalGap += Math.abs(calc.delta);
+                    hasAnyGaps = true;
+                }
+            });
+            const currentMonthGap = currentMonthTotalGap;
+            const currentMonthTotalWithGap = currentMonthEarned + currentMonthGap;
+            const currentMonthHours = currentMonthShifts.reduce((sum, s) => sum + calculateHours(s.startTime, s.endTime), 0);
+
+            // Monthly Stats
+            const monthlyHtml = `
+                <div style="margin-bottom: 8px;">
+                    <div style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">📅 This Month</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+                        <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 6px;">💵</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Cash</div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(currentMonthCash)}</div>
+                        </div>
+                        <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 6px;">💳</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Card</div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(currentMonthCard)}</div>
+                        </div>
+                        <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 6px;">📱</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Other</div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(currentMonthOther)}</div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 12px; background: ${hasAnyGaps ? (isDarkMode ? '#2a1818' : '#fff5f5') : (isDarkMode ? '#182a18' : '#f5fff5')}; border-radius: 12px; border-left: 3px solid ${hasAnyGaps ? '#ff6b6b' : '#28a745'}; margin-bottom: 16px; cursor: ${hasAnyGaps ? 'pointer' : 'default'};" onclick="${hasAnyGaps ? 'showGapsList()' : ''}">
+                        <div style="font-size: 12px; color: ${hasAnyGaps ? '#ff6b6b' : '#28a745'}; font-weight: 600;">
+                            ${hasAnyGaps ? '⚠️ Total Gaps (Restaurant pays)' : '✓ All Shifts Above Minimum'}
+                        </div>
+                        <div style="font-size: 18px; font-weight: 700; color: ${hasAnyGaps ? '#ff6b6b' : '#28a745'}; margin-top: 4px;">
+                            ₪${fmt(currentMonthGap)}
+                        </div>
+                    </div>
+
+                    <div style="background: var(--card-bg); border-radius: 14px; padding: 16px; border: 1px solid var(--border-color); margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">Total shifts</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${currentMonthShifts.length}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">Total Hours</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${fmt(currentMonthHours, 1)}h</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">Total Earned</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(currentMonthTotalWithGap)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">Earned Tips</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(currentMonthEarned)}</span>
+                        </div>
+                    </div>
+
+                    ${currentMonthShifts.length > 0 ? `
+                        <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); border-left: 3px solid #FF6B9D;">
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">✨ Best Shift (Profit)</div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-primary); font-size: 14px;">${(() => {
+                                    let bestShift = currentMonthShifts[0];
+                                    let bestProfit = calculateDelta(bestShift).delta;
+                                    currentMonthShifts.forEach(shift => {
+                                        const profit = calculateDelta(shift).delta;
+                                        if (profit > bestProfit) {
+                                            bestProfit = profit;
+                                            bestShift = shift;
+                                        }
+                                    });
+                                    return formatDate(bestShift.date);
+                                })()}</span>
+                                <span style="color: #FF6B9D; font-weight: 700; font-size: 14px;">+₪${(() => {
+                                    let bestShift = currentMonthShifts[0];
+                                    let bestProfit = calculateDelta(bestShift).delta;
+                                    currentMonthShifts.forEach(shift => {
+                                        const profit = calculateDelta(shift).delta;
+                                        if (profit > bestProfit) {
+                                            bestProfit = profit;
+                                            bestShift = shift;
+                                        }
+                                    });
+                                    return fmt(bestProfit);
+                                })()}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            document.getElementById('monthlyStats').innerHTML = monthlyHtml;
+
+            // All-Time Stats
+            const allTimeHtml = `
+                <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid var(--border-color);">
+                    <div style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">📊 All Time</div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+                        <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 6px;">💵</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Cash</div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(totalCash)}</div>
+                        </div>
+                        <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 6px;">💳</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Card</div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(totalCard)}</div>
+                        </div>
+                        <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 6px;">📱</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-bottom: 4px;">Other</div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">₪${fmt0(totalOther)}</div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 12px; background: ${totalAllTimeGap > 0 ? (isDarkMode ? '#2a1818' : '#fff5f5') : (isDarkMode ? '#182a18' : '#f5fff5')}; border-radius: 12px; border-left: 3px solid ${totalAllTimeGap > 0 ? '#ff6b6b' : '#28a745'}; margin-bottom: 16px; cursor: ${totalAllTimeGap > 0 ? 'pointer' : 'default'};" onclick="${totalAllTimeGap > 0 ? 'showGapsList(true)' : ''}">
+                        <div style="font-size: 12px; color: ${totalAllTimeGap > 0 ? '#ff6b6b' : '#28a745'}; font-weight: 600;">
+                            ${totalAllTimeGap > 0 ? '⚠️ Total Gaps (Restaurant pays)' : '✓ All Shifts Above Minimum'}
+                        </div>
+                        <div style="font-size: 18px; font-weight: 700; color: ${totalAllTimeGap > 0 ? '#ff6b6b' : '#28a745'}; margin-top: 4px;">
+                            ₪${fmt(totalAllTimeGap)}
+                        </div>
+                    </div>
+
+                    <div style="background: var(--card-bg); border-radius: 14px; padding: 16px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">Total shifts</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${shifts.length}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">Total Earned</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(totalEarned + totalAllTimeGap)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">Earned Tips</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">₪${fmt(totalEarned)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-secondary); font-size: 14px;">Total Hours</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${fmt(totalHours, 1)}h</span>
+                        </div>
+                    </div>
+
+                    ${shifts.length > 0 ? `
+                        <div style="background: var(--card-bg); border-radius: 14px; padding: 14px; border: 1px solid var(--border-color); border-left: 3px solid #FF6B9D; margin-top: 16px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">✨ Best Shift (All Time)</div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-primary); font-size: 14px;">${(() => {
+                                    let bestShift = shifts[0];
+                                    let bestProfit = calculateDelta(bestShift).delta;
+                                    shifts.forEach(shift => {
+                                        const profit = calculateDelta(shift).delta;
+                                        if (profit > bestProfit) {
+                                            bestProfit = profit;
+                                            bestShift = shift;
+                                        }
+                                    });
+                                    return formatDate(bestShift.date);
+                                })()}</span>
+                                <span style="color: #FF6B9D; font-weight: 700; font-size: 14px;">+₪${(() => {
+                                    let bestShift = shifts[0];
+                                    let bestProfit = calculateDelta(bestShift).delta;
+                                    shifts.forEach(shift => {
+                                        const profit = calculateDelta(shift).delta;
+                                        if (profit > bestProfit) {
+                                            bestProfit = profit;
+                                            bestShift = shift;
+                                        }
+                                    });
+                                    return fmt(bestProfit);
+                                })()}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            document.getElementById('allTimeStats').innerHTML = allTimeHtml;
+        }
+
+        function toggleMenu() {
+            const panel = document.getElementById('sidePanel');
+            const overlay = document.getElementById('sidePanelOverlay');
+            const isOpen = panel.classList.contains('active');
+            if (isOpen) {
+                panel.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                panel.classList.add('active');
+                overlay.classList.add('active');
+            }
+        }
+
+        function closeMenu() {
+            document.getElementById('sidePanel').classList.remove('active');
+            document.getElementById('sidePanelOverlay').classList.remove('active');
+        }
+
+        function menuSwitchTab(tab) {
+            switchTab(tab);
+            document.querySelectorAll('.side-menu-item').forEach(btn => btn.classList.remove('active-menu'));
+            const activeBtn = document.querySelector(`[onclick="menuSwitchTab('${tab}')"]`);
+            if (activeBtn) activeBtn.classList.add('active-menu');
+            closeMenu();
+        }
+
+        function menuToggleDarkMode() {
+            toggleDarkMode();
+            const btn = document.getElementById('menuDarkMode');
+            const isDark = document.body.classList.contains('dark-mode');
+            btn.querySelector('.side-menu-icon').textContent = isDark ? '☀️' : '🌙';
+            btn.querySelector('span:last-child').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        }
+
+        function menuOpenSettings() {
+            openSettings();
+            document.querySelectorAll('.side-menu-item').forEach(btn => btn.classList.remove('active-menu'));
+            closeMenu();
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('shiftsView').style.display = tab === 'shifts' ? 'block' : 'none';
+            document.getElementById('archiveView').style.display = tab === 'archive' ? 'block' : 'none';
+            document.getElementById('statsView').style.display = tab === 'stats' ? 'block' : 'none';
+            document.getElementById('settingsView').style.display = 'none';
+            
+            const btnAdd = document.querySelector('.btn-add');
+            if (tab === 'stats') {
+                btnAdd.classList.add('hidden');
+            } else {
+                btnAdd.classList.remove('hidden');
+            }
+            
+            if (tab === 'archive') {
+                renderArchive();
+            }
+        }
+
+        function openSettings() {
+            const settingsView = document.getElementById('settingsView');
+            const btnAdd = document.querySelector('.btn-add');
+            if (settingsView.style.display === 'none') {
+                document.getElementById('shiftsView').style.display = 'none';
+                document.getElementById('archiveView').style.display = 'none';
+                document.getElementById('statsView').style.display = 'none';
+                settingsView.style.display = 'block';
+                btnAdd.classList.add('hidden');
+            } else {
+                settingsView.style.display = 'none';
+                btnAdd.classList.remove('hidden');
+                switchTab('shifts');
+            }
+        }
+
+        initializeApp();
+    </script>
+</body>
+</html>
